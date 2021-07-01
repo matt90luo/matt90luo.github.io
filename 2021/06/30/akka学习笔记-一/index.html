@@ -20,28 +20,34 @@
     var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="ukiml的博客">
-<meta property="og:url" content="https://matt90luo.github.io/index.html">
+  <meta name="description" content="akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，acto">
+<meta property="og:type" content="article">
+<meta property="og:title" content="akka学习笔记(一)">
+<meta property="og:url" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/index.html">
 <meta property="og:site_name" content="ukiml的博客">
+<meta property="og:description" content="akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，acto">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
+<meta property="article:published_time" content="2021-06-30T09:51:04.000Z">
+<meta property="article:modified_time" content="2021-07-01T03:36:09.512Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
 
-<link rel="canonical" href="https://matt90luo.github.io/">
+<link rel="canonical" href="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>ukiml的博客</title>
+  <title>akka学习笔记(一) | ukiml的博客</title>
   
 
 
@@ -154,9 +160,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -172,10 +179,9 @@
       <meta itemprop="name" content="ukiml的博客">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/" class="post-title-link" itemprop="url">akka学习笔记(一)</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          akka学习笔记(一)
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -219,7 +225,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。</p>
+        <p>akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。</p>
 <p>actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，actor一次只能同步处理一个消息，处理消息过程中，除了可以接收消息，不能做任何其他操作。</p>
 <p>Akka的哲学是基于End to End Argument这个事实的，即：在分布式环境中，reliable的通信需要在application层来确保，中间件层或者infrastructure只能提供效率上的帮助，而绝对无法保证reliability。</p>
 <p>akka是一个基于actor模型的框架，提供了极致的异步并发处理性能，但是分布式条件下的可靠性需要使用者来保障</p>
@@ -396,917 +402,37 @@
 <li><p>模式匹配使用频率非常多，需要牢固掌握</p></li>
 </ol>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/" class="post-title-link" itemprop="url">从多臂赌博机谈起</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-06-21 11:43:23" itemprop="dateCreated datePublished" datetime="2021-06-21T11:43:23+00:00">2021-06-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>一个赌徒，要去摇老虎机，走进赌场一看，一排老虎机，外表一模一样，但是每个老虎机吐钱的概率可不一样，他不知道每个老虎机吐钱的概率分布是什么，那么每次该选择哪个老虎机可以做到最大化收益呢？这就是多臂赌博机问题 <strong>(Multi-armed bandit problem, K- or N-armed bandit problem, MAB</strong></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/" class="post-title-link" itemprop="url">python-IO密集任务/计算密集任务/多线程/多进程</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-21 11:13:40" itemprop="dateCreated datePublished" datetime="2021-05-21T11:13:40+00:00">2021-05-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Python 作为编程语言存在多个具体实现，包括最常用的 CPython、超集 Cython、.NET 平台的 IronPython、JVM 上的 Jython，R 语言实现的 RPython、JIT 版本的 PyPy 等等。这里我们只讨论最常用的、官方的 CPython 实现。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/" rel="prev" title="从多臂赌博机谈起">
+      <i class="fa fa-chevron-left"></i> 从多臂赌博机谈起
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
   
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/07/21/%E5%A4%A7%E6%95%B0%E6%8D%AE-DataFlow%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/21/%E5%A4%A7%E6%95%B0%E6%8D%AE-DataFlow%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">大数据-DataFlow编程模型</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-07-21 18:35:49" itemprop="dateCreated datePublished" datetime="2020-07-21T18:35:49+00:00">2020-07-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/" class="post-title-link" itemprop="url">机器学习--线性回归/正规方程解法/梯度下降法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-31 22:50:59" itemprop="dateCreated datePublished" datetime="2020-05-31T22:50:59+00:00">2020-05-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>18k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>17 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>线性回归可以说是最基础的机器学习模型，本文将对此模型做一个分析，并介绍常见的线性回归模型的训练方法。以及由此衍生出的逻辑回归(LR)，多分类。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/28/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-spark%E5%9F%BA%E4%BA%8Eopencv%E5%81%9A%E5%9B%BE%E7%89%87%E5%88%86%E7%B1%BB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/28/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-spark%E5%9F%BA%E4%BA%8Eopencv%E5%81%9A%E5%9B%BE%E7%89%87%E5%88%86%E7%B1%BB/" class="post-title-link" itemprop="url">机器学习--spark基于opencv做图片分类</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-28 21:40:02" itemprop="dateCreated datePublished" datetime="2020-05-28T21:40:02+00:00">2020-05-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>spark擅长分布式处理海量数据，opencv又是进行图像处理的利器，在面对海量图片的时候，我们是否可以考虑结合二者的优势? 本文将展示如何在spark下使用opencv，并训练一个简单的二分类模型。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/28/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-spark%E5%9F%BA%E4%BA%8Eopencv%E5%81%9A%E5%9B%BE%E7%89%87%E5%88%86%E7%B1%BB/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/20/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E4%BD%BF%E7%94%A8ALS%E6%B1%82%E8%A7%A3LFM%E6%A8%A1%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/20/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E4%BD%BF%E7%94%A8ALS%E6%B1%82%E8%A7%A3LFM%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">推荐系统-使用ALS求解LFM模型</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-20 09:44:16" itemprop="dateCreated datePublished" datetime="2020-05-20T09:44:16+00:00">2020-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>8.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>8 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在之前的文章中我曾写到, 用户和物品的交互关系可以是一个稀疏矩阵, 我们把这个矩阵称作评分矩阵<span class="math inline">\(R_{m,n}\)</span>, 比如下面的例子, ? 表示缺失</p>
-<table>
-<thead>
-<tr class="header">
-<th>user/item</th>
-<th>item_0</th>
-<th>item_1</th>
-<th>item_2</th>
-<th>item_3</th>
-<th>item_4</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>user_0</td>
-<td>?</td>
-<td>2</td>
-<td>1</td>
-<td>2</td>
-<td>?</td>
-</tr>
-<tr class="even">
-<td>user_1</td>
-<td>2</td>
-<td>?</td>
-<td>?</td>
-<td>1</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td>user_2</td>
-<td>?</td>
-<td>1</td>
-<td>1</td>
-<td>2</td>
-<td>?</td>
-</tr>
-<tr class="even">
-<td>user_3</td>
-<td>1</td>
-<td>?</td>
-<td>?</td>
-<td>1</td>
-<td>3</td>
-</tr>
-</tbody>
-</table>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/20/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E4%BD%BF%E7%94%A8ALS%E6%B1%82%E8%A7%A3LFM%E6%A8%A1%E5%9E%8B/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/16/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark-streaming%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/16/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark-streaming%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">大数据--spark-streaming开发总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-16 10:04:07" itemprop="dateCreated datePublished" datetime="2020-05-16T10:04:07+00:00">2020-05-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>spark streaming 和 Apache Storm、Apache Flink同属于大数据实时处理框架 spark streaming的流式处理是一种基于micro-batch的想法， 这篇文章会讲解 Spark Streaming 两种计算模型，无状态和状态计算模型以及该两种模型的注意事项，最后将小结一下Spark Streaming 的优缺点。</p>
-<h2 id="概述">概述</h2>
-<p>根据其官方文档介绍，Spark Streaming 有高扩展性、高吞吐量和容错能力强的特点。Spark Streaming 支持的数据输入源很多，例如：Kafka、Flume、Twitter、ZeroMQ 和简单的 TCP 套接字等等。原生支持常用的spark transform操作如：map、reduce、join、window 等进行运算。而结果有多种方式sink。并且可以和已有的spark MLlib完美衔接。其优秀的特点使用于多种业务场景，比如监控，网页点击、实时推荐等
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/16/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark-streaming%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/08/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/08/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="post-title-link" itemprop="url">大数据--spark应用性能优化常见错误处理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-08 21:11:25" itemprop="dateCreated datePublished" datetime="2020-05-08T21:11:25+00:00">2020-05-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本篇文章会讲述spark应用的性能调优, 针对常见的数据倾斜问题提出了一些解决方案, 以及如何避免Task Not SerializableException错误
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/08/%E5%A4%A7%E6%95%B0%E6%8D%AE-spark%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/04/25/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E4%BA%8Espark-graphX%E7%9A%84pageRank%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E5%86%B7%E5%90%AF%E5%8A%A8%E5%95%86%E5%93%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/25/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E4%BA%8Espark-graphX%E7%9A%84pageRank%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E5%86%B7%E5%90%AF%E5%8A%A8%E5%95%86%E5%93%81/" class="post-title-link" itemprop="url">推荐系统--基于spark graphX的pageRank算法计算冷启动商品</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-25 08:41:28" itemprop="dateCreated datePublished" datetime="2020-04-25T08:41:28+00:00">2020-04-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>推荐系统需要根据用户的历史行为和兴趣来预测用户将来的行为和兴趣，然而对于很多在开始阶段就希望有个性化推荐应用的网站来说，如何在没有大量用户数据的情况下设计个性化推荐系统并且让用户对网站内容从而愿意继续使用推荐系统就是冷启动问题。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/25/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E4%BA%8Espark-graphX%E7%9A%84pageRank%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E5%86%B7%E5%90%AF%E5%8A%A8%E5%95%86%E5%93%81/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 
 
           </div>
           
+    <div class="comments" id="gitalk-container"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -1353,6 +479,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#akka%E6%A8%A1%E5%9D%97"><span class="nav-number">1.</span> <span class="nav-text">akka模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#actor%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">actor层次结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AAiot%E4%BE%8B%E5%AD%90"><span class="nav-number">4.</span> <span class="nav-text">一个IoT例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1488,62 +615,28 @@ if (document.querySelectorAll('pre.mermaid').length) {
   
 
   
-      
-
-<script>
-  if (typeof MathJax === 'undefined') {
-    window.MathJax = {
-      loader: {
-        source: {
-          '[tex]/amsCd': '[tex]/amscd',
-          '[tex]/AMScd': '[tex]/amscd'
-        }
-      },
-      tex: {
-        inlineMath: {'[+]': [['$', '$']]},
-        tags: 'ams'
-      },
-      options: {
-        renderActions: {
-          findScript: [10, doc => {
-            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-              const display = !!node.type.match(/; *mode=display/);
-              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-              const text = document.createTextNode('');
-              node.parentNode.replaceChild(text, node);
-              math.start = {node: text, delim: '', n: 0};
-              math.end = {node: text, delim: '', n: 0};
-              doc.math.push(math);
-            });
-          }, '', false],
-          insertedScript: [200, () => {
-            document.querySelectorAll('mjx-container').forEach(node => {
-              let target = node.parentNode;
-              if (target.nodeName.toLowerCase() === 'li') {
-                target.parentNode.classList.add('has-jax');
-              }
-            });
-          }, '', false]
-        }
-      }
-    };
-    (function () {
-      var script = document.createElement('script');
-      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  } else {
-    MathJax.startup.document.state(0);
-    MathJax.texReset();
-    MathJax.typeset();
-  }
-</script>
-
-    
 
   
 
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5b91b1ad9dd50225f33e',
+      clientSecret: '19f46a8f45a6d87bb1bda4ad724df3e37d557201',
+      repo        : 'matt90luo.github.io',
+      owner       : 'matt90luo',
+      admin       : ['matt90luo'],
+      id          : 'cd3222b3e1fb0beb9ed02d1bfd4ca0dc',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
 
 </body>
 </html>
