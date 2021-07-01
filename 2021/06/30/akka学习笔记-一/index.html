@@ -20,16 +20,16 @@
     var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
   </script>
 
-  <meta name="description" content="akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，acto">
+  <meta name="description" content="akka是什么? akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，actor">
 <meta property="og:type" content="article">
 <meta property="og:title" content="akka学习笔记(一)">
 <meta property="og:url" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/index.html">
 <meta property="og:site_name" content="ukiml的博客">
-<meta property="og:description" content="akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，acto">
+<meta property="og:description" content="akka是什么? akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，actor">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
 <meta property="article:published_time" content="2021-06-30T09:51:04.000Z">
-<meta property="article:modified_time" content="2021-07-01T03:36:09.512Z">
+<meta property="article:modified_time" content="2021-07-01T03:41:31.307Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
@@ -197,7 +197,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:36:09" itemprop="dateModified" datetime="2021-07-01T03:36:09+00:00">2021-07-01</time>
+                <time title="修改时间：2021-07-01 03:41:31" itemprop="dateModified" datetime="2021-07-01T03:41:31+00:00">2021-07-01</time>
               </span>
 
           <br>
@@ -225,8 +225,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>akka是什么?b akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。</p>
+        <p>akka是什么? akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。</p>
 <p>actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，actor一次只能同步处理一个消息，处理消息过程中，除了可以接收消息，不能做任何其他操作。</p>
+<span id="more"></span>
 <p>Akka的哲学是基于End to End Argument这个事实的，即：在分布式环境中，reliable的通信需要在application层来确保，中间件层或者infrastructure只能提供效率上的帮助，而绝对无法保证reliability。</p>
 <p>akka是一个基于actor模型的框架，提供了极致的异步并发处理性能，但是分布式条件下的可靠性需要使用者来保障</p>
 <h2 id="akka模块">akka模块</h2>
