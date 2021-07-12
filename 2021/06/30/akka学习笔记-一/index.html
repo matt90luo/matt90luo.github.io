@@ -28,8 +28,9 @@
 <meta property="og:description" content="akka是什么? akka是一个基于actor并发模型的框架，该模型可以追溯到1973年发表的论文《A Universal Modular Actor Formalism for Artificial Intelligence 》， Actor就源于该模型。 actor通过消息传递的方式与外界通信。消息传递是异步的。每个actor都有一个邮箱，该邮箱接收并缓存其他actor发过来的消息，actor">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/device_manager_tree.png">
 <meta property="article:published_time" content="2021-06-30T09:51:04.000Z">
-<meta property="article:modified_time" content="2021-07-01T03:41:31.307Z">
+<meta property="article:modified_time" content="2021-07-12T09:04:38.496Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://matt90luo.github.io/2021/06/30/akka%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E4%B8%80/actor_top_tree.png">
@@ -197,7 +198,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:41:31" itemprop="dateModified" datetime="2021-07-01T03:41:31+00:00">2021-07-01</time>
+                <time title="修改时间：2021-07-12 09:04:38" itemprop="dateModified" datetime="2021-07-12T09:04:38+00:00">2021-07-12</time>
               </span>
 
           <br>
@@ -348,6 +349,7 @@
 <p>会看到以下输出: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">supervised actor started</span><br><span class="line">supervised actor fails now</span><br><span class="line">supervised actor will be restarted</span><br><span class="line">supervised actor started</span><br><span class="line">[ERROR] [06/30/2021 12:01:41.800] [testSystem-akka.actor.default-dispatcher-3] [akka://testSystem/user/supervising-actor/supervised-actor] Supervisor RestartSupervisor saw failure: I failed!</span><br><span class="line">java.lang.Exception: I failed!</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
 <p>在发生failure之后，被监控的actor停止然后立刻restarted(这就是为什么会打印出supervised actor will be restarted 但是没有supervised actor stopped)</p>
 <h2 id="一个iot例子">一个IoT例子</h2>
+<p><img src="device_manager_tree.png" /></p>
 <p>官方文档提供了一个IoT例子，在这个IoT系统中分别有三个角色DevcieActor, DeviceGroup, DeviceManager以及一哥查询功能queryActor</p>
 <p>DeviceActor这个角色有两个任务，记录温度，读取温度。</p>
 <p>DevcieGroup 需要保存记录在Group下的device信息(使用一个内部Map对象实现)，主要任务有两个，当创建一个新的deviceActor时监控它，当收到actordevice stop消息需要从Map中移除。这个功能我们用以下代码实现 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">context.watchWith(deviceActor, <span class="type">DeviceTerminated</span>(deviceActor, groupId, deviceId))</span><br><span class="line"><span class="comment">//Registers this actor as a Monitor for the provided ActorRef. This actor will receive the specified message when watched actor is terminated.</span></span><br></pre></td></tr></table></figure> 上述代码的含义是，当deviceActor is terminated, 当前actor会收到消息DeviceTerminated(deviceActor, groupId, deviceId)</p>
@@ -420,7 +422,10 @@
     <a href="/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/" rel="prev" title="从多臂赌博机谈起">
       <i class="fa fa-chevron-left"></i> 从多臂赌博机谈起
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2021/07/08/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%9F%BA%E4%BA%8EFM%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8F%AC%E5%9B%9E/" rel="next" title="推荐系统-基于FM模型的召回">
+      推荐系统-基于FM模型的召回 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -494,7 +499,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -507,7 +512,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -543,12 +548,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">108k</span>
+    <span title="站点总字数">113k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:38</span>
+    <span title="站点阅读时长">1:43</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
   </div>

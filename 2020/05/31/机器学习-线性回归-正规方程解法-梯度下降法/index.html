@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://matt90luo.github.io/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/logitcost.png">
 <meta property="og:image" content="https://matt90luo.github.io/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/cross_entropy_topology.png">
 <meta property="article:published_time" content="2020-05-31T22:50:59.000Z">
-<meta property="article:modified_time" content="2021-07-01T03:41:31.315Z">
+<meta property="article:modified_time" content="2021-07-12T09:04:38.504Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://matt90luo.github.io/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/normpros.png">
@@ -199,7 +199,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-07-01 03:41:31" itemprop="dateModified" datetime="2021-07-01T03:41:31+00:00">2021-07-01</time>
+                <time title="修改时间：2021-07-12 09:04:38" itemprop="dateModified" datetime="2021-07-12T09:04:38+00:00">2021-07-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -496,7 +496,7 @@ J(\mathbf{\theta}) &amp;= -\frac{1}{N}\sum_{i=1}^{n}y^{(i)}\log{\hat{y}^{(i)}} +
 <p>过采样会增加一些正例，但是过采样法不能简单的增加正例，这样会导致严重的过拟合。代表性算法有SMOTE，其核心思想是通过对正例进行插值来产生额外正例。</p>
 <h2 id="softmax">softmax</h2>
 <p>之前讨论过多分类问题可以拆解成一系列二分类问题，那有没有直接可以用于多分类的模型呢? 答案就是softmax，它可以直接对多类别进行分类。 softmax函数的本质是将一个K维的任意实数向量压缩（映射）成另一个K维的实数向量，其中向量中的每个元素取值都介于（0,1）之间，而且所有元素之和为1。 <span class="math display">\[
-S(z_j) = \frac{z_j}{\sum_{i=1}^{n}e^{z_i}}
+S(z_j) = \frac{e^{z_j}}{\sum_{i=1}^{n}e^{z_i}}
 \]</span></p>
 <p>我们需要损失函数返回预测结果与真实结果之间的差距，并进行梯度下降进行参数更新。实际上，softmax回归更多地是用在神经网络输出层的后面，得到损失函数后进行反向传播更新，当然也可以直接套用一个线性模型。</p>
 <p>下面我们用梯度下降法推导出softmax的参数更新公式，其损失函数形式依然是从交叉熵出发, 先来看单个样本的损失函数<span class="math inline">\(J&#39;\)</span>，并且假设类别个数为k</p>
@@ -664,7 +664,7 @@ z &amp;= \begin{bmatrix} \theta_1^Tx &amp; \theta_2^Tx &amp; \cdots &amp; \theta
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -677,7 +677,7 @@ z &amp;= \begin{bmatrix} \theta_1^Tx &amp; \theta_2^Tx &amp; \cdots &amp; \theta
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -713,12 +713,12 @@ z &amp;= \begin{bmatrix} \theta_1^Tx &amp; \theta_2^Tx &amp; \cdots &amp; \theta
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">108k</span>
+    <span title="站点总字数">113k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:38</span>
+    <span title="站点阅读时长">1:43</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
   </div>
