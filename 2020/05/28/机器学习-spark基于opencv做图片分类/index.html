@@ -28,8 +28,8 @@
 <meta property="og:description" content="spark擅长分布式处理海量数据，opencv又是进行图像处理的利器，在面对海量图片的时候，我们是否可以考虑结合二者的优势? 本文将展示如何在spark下使用opencv，并训练一个简单的二分类模型。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://matt90luo.github.io/2020/05/28/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-spark%E5%9F%BA%E4%BA%8Eopencv%E5%81%9A%E5%9B%BE%E7%89%87%E5%88%86%E7%B1%BB/opencvspark.png">
-<meta property="article:published_time" content="2020-05-28T13:40:02.000Z">
-<meta property="article:modified_time" content="2022-07-19T13:11:18.540Z">
+<meta property="article:published_time" content="2020-05-28T21:40:02.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:35:55.443Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://matt90luo.github.io/2020/05/28/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-spark%E5%9F%BA%E4%BA%8Eopencv%E5%81%9A%E5%9B%BE%E7%89%87%E5%88%86%E7%B1%BB/opencvspark.png">
@@ -190,7 +190,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-05-28 21:40:02" itemprop="dateCreated datePublished" datetime="2020-05-28T21:40:02+08:00">2020-05-28</time>
+              <time title="创建时间：2020-05-28 21:40:02" itemprop="dateCreated datePublished" datetime="2020-05-28T21:40:02+00:00">2020-05-28</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -227,22 +227,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>spark擅长分布式处理海量数据，opencv又是进行图像处理的利器，在面对海量图片的时候，我们是否可以考虑结合二者的优势?
-本文将展示如何在spark下使用opencv，并训练一个简单的二分类模型。</p>
+        <p>spark擅长分布式处理海量数据，opencv又是进行图像处理的利器，在面对海量图片的时候，我们是否可以考虑结合二者的优势? 本文将展示如何在spark下使用opencv，并训练一个简单的二分类模型。</p>
 <span id="more"></span>
 <h2 id="环境准备">环境准备</h2>
 <ol type="1">
-<li>我们首先在单机上测试，先下载<a
-target="_blank" rel="noopener" href="https://github.com/opencv/opencv">opencv源码</a>，安装opencv可以参考<a
-target="_blank" rel="noopener" href="https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html">这篇</a></li>
-<li>在编译好的文件夹下 有命名为opencv_xxx.jar的java接口,
-这个需要添加到项目依赖，同时要添加jvm运行时的option。以IDEA为例，Run-&gt;EditConfiguration,
-vm option 添加
--Djava.library.path="/Users/mluo/Documents/opencv/build/lib"</li>
-<li>在开始运行时添加
-System.loadLibrary(Core.NATIVE_LIBRARY_NAME)，确保能够Load the native
-library <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> rootLogger = <span class="type">Logger</span>.getRootLogger()</span><br><span class="line">    rootLogger.setLevel(<span class="type">Level</span>.<span class="type">WARN</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Load the native library.</span></span><br><span class="line">    <span class="type">System</span>.loadLibrary(<span class="type">Core</span>.<span class="type">NATIVE_LIBRARY_NAME</span>)</span><br><span class="line">.....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-完成以上的步骤，就可以保证在spark中正常调用opencv</li>
+<li>我们首先在单机上测试，先下载<a target="_blank" rel="noopener" href="https://github.com/opencv/opencv">opencv源码</a>，安装opencv可以参考<a target="_blank" rel="noopener" href="https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html">这篇</a></li>
+<li>在编译好的文件夹下 有命名为opencv_xxx.jar的java接口, 这个需要添加到项目依赖，同时要添加jvm运行时的option。以IDEA为例，Run-&gt;EditConfiguration, vm option 添加 -Djava.library.path=&quot;/Users/mluo/Documents/opencv/build/lib&quot;</li>
+<li>在开始运行时添加 System.loadLibrary(Core.NATIVE_LIBRARY_NAME)，确保能够Load the native library <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> rootLogger = <span class="type">Logger</span>.getRootLogger()</span><br><span class="line">    rootLogger.setLevel(<span class="type">Level</span>.<span class="type">WARN</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Load the native library.</span></span><br><span class="line">    <span class="type">System</span>.loadLibrary(<span class="type">Core</span>.<span class="type">NATIVE_LIBRARY_NAME</span>)</span><br><span class="line">.....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 完成以上的步骤，就可以保证在spark中正常调用opencv</li>
 </ol>
 <h2 id="图片的特征处理">图片的特征处理</h2>
 <p>常用的图像特征有颜色特征、纹理特征、形状特征、空间关系特征</p>
@@ -250,33 +241,21 @@ library <figure class="highlight scala"><table><tr><td class="gutter"><pre><span
 <li><strong>什么是颜色通道</strong></li>
 </ul>
 <ol type="1">
-<li><p>单通道图
-俗称灰度图，每个像素点只能有有一个值表示颜色，它的像素值在0到255之间，0是黑色，255是白色，中间值是一些不同等级的灰色。（也有3通道的灰度图，3通道灰度图只有一个通道有值，其他两个通道的值都是零）。</p></li>
-<li><p>三通道图 每个像素点都有3个值表示
-，所以就是3通道。也有4通道的图。例如RGB图片即为三通道图片，RGB色彩模式是工业界的一种颜色标准，是通过对红(R)、绿(G)、蓝(B)三个颜色通道的变化以及它们相互之间的叠加来得到各式各样的颜色的，RGB即是代表红、绿、蓝三个通道的颜色，这个标准几乎包括了人类视力所能感知的所有颜色，是目前运用最广的颜色系统之一。总之，每一个点由三个值表示。还会有其他的描述通道
-比如 CMYK（四个分量）、Lab（三个）、HSV（三个）等等</p></li>
+<li><p>单通道图 俗称灰度图，每个像素点只能有有一个值表示颜色，它的像素值在0到255之间，0是黑色，255是白色，中间值是一些不同等级的灰色。（也有3通道的灰度图，3通道灰度图只有一个通道有值，其他两个通道的值都是零）。</p></li>
+<li><p>三通道图 每个像素点都有3个值表示 ，所以就是3通道。也有4通道的图。例如RGB图片即为三通道图片，RGB色彩模式是工业界的一种颜色标准，是通过对红(R)、绿(G)、蓝(B)三个颜色通道的变化以及它们相互之间的叠加来得到各式各样的颜色的，RGB即是代表红、绿、蓝三个通道的颜色，这个标准几乎包括了人类视力所能感知的所有颜色，是目前运用最广的颜色系统之一。总之，每一个点由三个值表示。还会有其他的描述通道 比如 CMYK（四个分量）、Lab（三个）、HSV（三个）等等</p></li>
 </ol>
 <ul>
-<li><p><strong>图片为什么要灰度化</strong>
-识别物体，最关键的因素是梯度（SIFT/HOG），梯度意味着边缘，这是最本质的部分，而计算梯度，自然就用到灰度图像了，可以把灰度理解为图像的强度。颜色，易受光照影响，难以提供关键信息，故将图像进行灰度化，同时也可以加快特征提取的速度。</p></li>
-<li><p><strong>什么是仿射不变形</strong>
-平面上任意两条线，经过仿射变换后，仍保持原来的状态（比如平行的线还是平行，相交的线夹角不变等）</p></li>
-<li><p><strong>什么是局部特征 局部特征有哪些特点</strong>
-局部特征从总体上说是图像或在视觉领域中一些有别于其周围的地方；局部特征通常是描述一块区域，使其能具有高可区分度；局部特征的好坏直接会决定着后面分类、识别是否会得到一个好的结果。局部特征应该具有的特点：
-可重复性、可区分性、准确性、有效性（特征的数量、特征提取的效率）、鲁棒性（稳定性、不变性）</p></li>
+<li><p><strong>图片为什么要灰度化</strong> 识别物体，最关键的因素是梯度（SIFT/HOG），梯度意味着边缘，这是最本质的部分，而计算梯度，自然就用到灰度图像了，可以把灰度理解为图像的强度。颜色，易受光照影响，难以提供关键信息，故将图像进行灰度化，同时也可以加快特征提取的速度。</p></li>
+<li><p><strong>什么是仿射不变形</strong> 平面上任意两条线，经过仿射变换后，仍保持原来的状态（比如平行的线还是平行，相交的线夹角不变等）</p></li>
+<li><p><strong>什么是局部特征 局部特征有哪些特点</strong> 局部特征从总体上说是图像或在视觉领域中一些有别于其周围的地方；局部特征通常是描述一块区域，使其能具有高可区分度；局部特征的好坏直接会决定着后面分类、识别是否会得到一个好的结果。局部特征应该具有的特点： 可重复性、可区分性、准确性、有效性（特征的数量、特征提取的效率）、鲁棒性（稳定性、不变性）</p></li>
 </ul>
-<h3
-id="sift尺度不变特征变换特征提取">SIFT(尺度不变特征变换)特征提取</h3>
+<h3 id="sift尺度不变特征变换特征提取">SIFT(尺度不变特征变换)特征提取</h3>
 <p>实质是在不同的尺度空间上查找关键点(特征点)，并计算出关键点的方向。SIFT所查找到的关键点是一些十分突出、不会因光照、仿射变换和噪音等因素而变化的点，如角点、边缘点、暗区的亮点及亮区的暗点等。主要步骤如下:</p>
 <ol type="1">
-<li><p>构建DOG尺度空间：
-模拟图像数据的多尺度特征，大尺度抓住概貌特征，小尺度注重细节特征。通过构建高斯金字塔（每一层用不同的参数σ做高斯模糊（加权）），保证图像在任何尺度都能有对应的特征点，即保证尺度不变性。</p></li>
-<li><p>关键点搜索和定位：
-确定是否为关键点，需要将该点与同尺度空间不同σ值的图像中的相邻点比较，如果该点为max或min，则为一个特征点。找到所有特征点后，要去除低对比度和不稳定的边缘效应的点，留下具有代表性的关键点（比如，正方形旋转后变为菱形，如果用边缘做识别，4条边就完全不一样，就会错误；如果用角点识别，则稳定一些）。去除这些点的好处是增强匹配的抗噪能力和稳定性。最后，对离散的点做曲线拟合，得到精确的关键点的位置和尺度信息。</p></li>
-<li><p>方向赋值：
-为了实现旋转不变性，需要根据检测到的关键点的局部图像结构为特征点赋值。具体做法是用梯度方向直方图。在计算直方图时，每个加入直方图的采样点都使用圆形高斯函数进行加权处理，也就是进行高斯平滑。这主要是因为SIFT算法只考虑了尺度和旋转不变形，没有考虑仿射不变性。通过高斯平滑，可以使关键点附近的梯度幅值有较大权重，从而部分弥补没考虑仿射不变形产生的特征点不稳定。注意，一个关键点可能具有多个关键方向，这有利于增强图像匹配的鲁棒性。</p></li>
-<li><p>关键点描述子的生成：
-关键点描述子不但包括关键点，还包括关键点周围对其有贡献的像素点。这样可使关键点有更多的不变特性，提高目标匹配效率。在描述子采样区域时，需要考虑旋转后进行双线性插值，防止因旋转图像出现白点。同时，为了保证旋转不变性，要以特征点为中心，在附近领域内旋转θ角，然后计算采样区域的梯度直方图，形成n维SIFT特征矢量（如128-SIFT）。最后，为了去除光照变化的影响，需要对特征矢量进行归一化处理。</p></li>
+<li><p>构建DOG尺度空间： 模拟图像数据的多尺度特征，大尺度抓住概貌特征，小尺度注重细节特征。通过构建高斯金字塔（每一层用不同的参数σ做高斯模糊（加权）），保证图像在任何尺度都能有对应的特征点，即保证尺度不变性。</p></li>
+<li><p>关键点搜索和定位： 确定是否为关键点，需要将该点与同尺度空间不同σ值的图像中的相邻点比较，如果该点为max或min，则为一个特征点。找到所有特征点后，要去除低对比度和不稳定的边缘效应的点，留下具有代表性的关键点（比如，正方形旋转后变为菱形，如果用边缘做识别，4条边就完全不一样，就会错误；如果用角点识别，则稳定一些）。去除这些点的好处是增强匹配的抗噪能力和稳定性。最后，对离散的点做曲线拟合，得到精确的关键点的位置和尺度信息。</p></li>
+<li><p>方向赋值： 为了实现旋转不变性，需要根据检测到的关键点的局部图像结构为特征点赋值。具体做法是用梯度方向直方图。在计算直方图时，每个加入直方图的采样点都使用圆形高斯函数进行加权处理，也就是进行高斯平滑。这主要是因为SIFT算法只考虑了尺度和旋转不变形，没有考虑仿射不变性。通过高斯平滑，可以使关键点附近的梯度幅值有较大权重，从而部分弥补没考虑仿射不变形产生的特征点不稳定。注意，一个关键点可能具有多个关键方向，这有利于增强图像匹配的鲁棒性。</p></li>
+<li><p>关键点描述子的生成： 关键点描述子不但包括关键点，还包括关键点周围对其有贡献的像素点。这样可使关键点有更多的不变特性，提高目标匹配效率。在描述子采样区域时，需要考虑旋转后进行双线性插值，防止因旋转图像出现白点。同时，为了保证旋转不变性，要以特征点为中心，在附近领域内旋转θ角，然后计算采样区域的梯度直方图，形成n维SIFT特征矢量（如128-SIFT）。最后，为了去除光照变化的影响，需要对特征矢量进行归一化处理。</p></li>
 </ol>
 <ul>
 <li><strong>SIFT特征提取的优点</strong>
@@ -293,8 +272,7 @@ id="sift尺度不变特征变换特征提取">SIFT(尺度不变特征变换)特�
 <li>有时特征点较少（比如模糊图像）；</li>
 <li>对边缘光滑的目标无法准确提取特征（比如边缘平滑的图像，检测出的特征点过少，对圆更是无能为力）。</li>
 </ol></li>
-<li><strong>SIFT特征提取可以解决的问题</strong>
-目标的自身状态、场景所处的环境和成像器材的成像特性等因素影响图像配准/目标识别跟踪的性能。而SIFT算法在一定程度上可解决：
+<li><strong>SIFT特征提取可以解决的问题</strong> 目标的自身状态、场景所处的环境和成像器材的成像特性等因素影响图像配准/目标识别跟踪的性能。而SIFT算法在一定程度上可解决：
 <ul>
 <li>目标的旋转、缩放、平移（RST）</li>
 <li>图像仿射/投影变换（视点viewpoint）</li>
@@ -314,9 +292,7 @@ id="sift尺度不变特征变换特征提取">SIFT(尺度不变特征变换)特�
 <h2 id="利用图像特征训练svm分类模型">利用图像特征训练SVM分类模型</h2>
 <p>上面介绍了提取图像特征的主要方法，这里我们利用opencv计算每一张图片的颜色矩,</p>
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//计算颜色矩 总共9个分量 返回tuple</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">calColorMoment</span></span>(channel: <span class="type">Mat</span>*) = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> bch = channel(<span class="number">0</span>) <span class="comment">//blue channel</span></span><br><span class="line">    <span class="keyword">val</span> gch = channel(<span class="number">1</span>) <span class="comment">//green channel</span></span><br><span class="line">    <span class="keyword">val</span> rch = channel(<span class="number">2</span>) <span class="comment">//red channel</span></span><br><span class="line"></span><br><span class="line">    bch.convertTo(bch, <span class="type">CvType</span>.<span class="type">CV_64FC1</span>)</span><br><span class="line">    gch.convertTo(gch, <span class="type">CvType</span>.<span class="type">CV_64FC1</span>)</span><br><span class="line">    rch.convertTo(rch, <span class="type">CvType</span>.<span class="type">CV_64FC1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> mean = <span class="keyword">new</span> <span class="type">MatOfDouble</span>()</span><br><span class="line">    <span class="keyword">val</span> std = <span class="keyword">new</span> <span class="type">MatOfDouble</span>()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="type">Core</span>.meanStdDev(bch, mean, std)</span><br><span class="line">    <span class="keyword">val</span> bchArray: <span class="type">Array</span>[<span class="type">Double</span>] = <span class="type">Array</span>(mean.toList.asScala.head, std.toList.asScala.head, cal3rdmoment(bch))</span><br><span class="line"></span><br><span class="line">    <span class="type">Core</span>.meanStdDev(gch, mean, std)</span><br><span class="line">    <span class="keyword">val</span> gchArray: <span class="type">Array</span>[<span class="type">Double</span>] = <span class="type">Array</span>(mean.toList.asScala.head, std.toList.asScala.head, cal3rdmoment(gch))</span><br><span class="line"></span><br><span class="line">    <span class="type">Core</span>.meanStdDev(rch, mean, std)</span><br><span class="line">    <span class="keyword">val</span> rchArray: <span class="type">Array</span>[<span class="type">Double</span>] = <span class="type">Array</span>(mean.toList.asScala.head, std.toList.asScala.head, cal3rdmoment(rch))</span><br><span class="line"></span><br><span class="line">    mean.release()</span><br><span class="line">    std.release()</span><br><span class="line">    bchArray ++ gchArray ++ rchArray</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>随后分别给训练图片打标，然后使用SVM训练并测试 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Run training algorithm to build the model</span></span><br><span class="line">    <span class="keyword">val</span> numIterations = <span class="number">100</span></span><br><span class="line">    <span class="keyword">val</span> model = <span class="type">SVMWithSGD</span>.train(training, numIterations)</span><br><span class="line">    <span class="comment">// Clear the default threshold.</span></span><br><span class="line">    model.clearThreshold()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// this is a binary classification</span></span><br><span class="line">    <span class="comment">// Compute raw scores on the test set.</span></span><br><span class="line">    <span class="keyword">val</span> scoreAndLabels = test.map &#123; point =&gt;</span><br><span class="line">      <span class="keyword">val</span> score = model.predict(point.features)</span><br><span class="line">      (score, point.label)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get evaluation metrics.</span></span><br><span class="line">    <span class="keyword">val</span> metrics = <span class="keyword">new</span> <span class="type">BinaryClassificationMetrics</span>(scoreAndLabels)</span><br><span class="line">    <span class="keyword">val</span> auROC = metrics.areaUnderROC()</span><br><span class="line">    println(<span class="string">&quot;Area under ROC = &quot;</span> + auROC)</span><br></pre></td></tr></table></figure>
-最终结果如下图 <img src="opencvspark.png" /> 2W张图片训练,
-5k张图片测试总共耗时12min，作为一个单机spark运行来说，速度是ok的</p>
+<p>随后分别给训练图片打标，然后使用SVM训练并测试 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Run training algorithm to build the model</span></span><br><span class="line">    <span class="keyword">val</span> numIterations = <span class="number">100</span></span><br><span class="line">    <span class="keyword">val</span> model = <span class="type">SVMWithSGD</span>.train(training, numIterations)</span><br><span class="line">    <span class="comment">// Clear the default threshold.</span></span><br><span class="line">    model.clearThreshold()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// this is a binary classification</span></span><br><span class="line">    <span class="comment">// Compute raw scores on the test set.</span></span><br><span class="line">    <span class="keyword">val</span> scoreAndLabels = test.map &#123; point =&gt;</span><br><span class="line">      <span class="keyword">val</span> score = model.predict(point.features)</span><br><span class="line">      (score, point.label)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get evaluation metrics.</span></span><br><span class="line">    <span class="keyword">val</span> metrics = <span class="keyword">new</span> <span class="type">BinaryClassificationMetrics</span>(scoreAndLabels)</span><br><span class="line">    <span class="keyword">val</span> auROC = metrics.areaUnderROC()</span><br><span class="line">    println(<span class="string">&quot;Area under ROC = &quot;</span> + auROC)</span><br></pre></td></tr></table></figure> 最终结果如下图 <img src="opencvspark.png" /> 2W张图片训练, 5k张图片测试总共耗时12min，作为一个单机spark运行来说，速度是ok的</p>
 <h2 id="小结">小结</h2>
 <ol type="1">
 <li>opencv功能强大，提供了多种提取图像特征的方法，如果在spark集群环境下使用opencv，需要在每个节点上都安装opencv</li>

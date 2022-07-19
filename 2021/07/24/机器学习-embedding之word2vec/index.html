@@ -27,8 +27,8 @@
 <meta property="og:site_name" content="ukiml的博客">
 <meta property="og:description" content="2014年的那篇 Efficient Estimation of Word Representations in Vector Space 第一次提出了将序列数据映射成向量的方法，自此也拉开了对于embedding技术的深度讨论。这篇文章将会总结word2vec背后的技术原理以及细节。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-07-24T03:18:41.000Z">
-<meta property="article:modified_time" content="2022-07-19T13:11:18.539Z">
+<meta property="article:published_time" content="2021-07-24T11:18:41.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:35:55.443Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 
@@ -188,7 +188,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-07-24 11:18:41" itemprop="dateCreated datePublished" datetime="2021-07-24T11:18:41+08:00">2021-07-24</time>
+              <time title="创建时间：2021-07-24 11:18:41" itemprop="dateCreated datePublished" datetime="2021-07-24T11:18:41+00:00">2021-07-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,36 +225,26 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>2014年的那篇 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1301.3781.pdf">Efficient
-Estimation of Word Representations in Vector Space</a>
-第一次提出了将序列数据映射成向量的方法，自此也拉开了对于embedding技术的深度讨论。这篇文章将会总结word2vec背后的技术原理以及细节。
-<span id="more"></span></p>
+        <p>2014年的那篇 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1301.3781.pdf">Efficient Estimation of Word Representations in Vector Space</a> 第一次提出了将序列数据映射成向量的方法，自此也拉开了对于embedding技术的深度讨论。这篇文章将会总结word2vec背后的技术原理以及细节。 <span id="more"></span></p>
 <h2 id="语言模型">语言模型</h2>
 <h3 id="n-gram模型">N-gram模型</h3>
-<p>N-gram本质上是一个统计模型，它的思想很简单。假设一个长度M的词序列为<span
-class="math inline">\(w_1^M = {w_1, w_2, ..w_M}\)</span>那么我们有</p>
+<p>N-gram本质上是一个统计模型，它的思想很简单。假设一个长度M的词序列为<span class="math inline">\(w_1^M = {w_1, w_2, ..w_M}\)</span>那么我们有</p>
 <p><span class="math display">\[
 P(W) = \prod_{m=1}^M P(w_m|w_1^{m-1})
 \]</span></p>
-<p>上面这个条件概率的意思是第m个单词的概率由它之前的m-1个单词决定(一个句子内)。我们稍微把<span
-class="math inline">\(P(w_m|w_1^{m-1})\)</span> 近似成<span
-class="math inline">\(P(w_m|w_{m-n+1}^{m-1})\)</span>。也就是说，下一个单词的概率只和之前的N个单词有关。
-N-gram模型是一个N-阶的马尔可夫链，每一个状态只依赖之前的N-1个时刻，与更久远的历史无关。</p>
+<p>上面这个条件概率的意思是第m个单词的概率由它之前的m-1个单词决定(一个句子内)。我们稍微把<span class="math inline">\(P(w_m|w_1^{m-1})\)</span> 近似成<span class="math inline">\(P(w_m|w_{m-n+1}^{m-1})\)</span>。也就是说，下一个单词的概率只和之前的N个单词有关。 N-gram模型是一个N-阶的马尔可夫链，每一个状态只依赖之前的N-1个时刻，与更久远的历史无关。</p>
 <p>在实际对语料库进行统计时，我们会采用以下近似</p>
 <p><span class="math display">\[
-p(w_k|w_1, w_2, ..., W_{k-1}) \simeq \frac{count(w_{k- n + 1}, ...
-,w_{k})}{count(w_{k-n+1}, ..., w_{k-1})}
+p(w_k|w_1, w_2, ..., W_{k-1}) \simeq \frac{count(w_{k- n + 1}, ... ,w_{k})}{count(w_{k-n+1}, ..., w_{k-1})}
 \]</span></p>
-<p>一般N-gram模型我们会取N=3,
-计算出所有概率。另外，n-gram模型中还有一个叫做平滑化的重要环节。试想如果某个组合的count为0，我们能认为概率为0吗？在这种情况下需要使用平滑技术。</p>
+<p>一般N-gram模型我们会取N=3, 计算出所有概率。另外，n-gram模型中还有一个叫做平滑化的重要环节。试想如果某个组合的count为0，我们能认为概率为0吗？在这种情况下需要使用平滑技术。</p>
 <p>总结起来，n-gram模型是这样一种模型，其主要工作是在语料中统计各种词串出现的次数以及平滑化处理。概率值计算好之后就存储起来，下次需要计算一个句子的概率时，只需找到相关的概率参数，将它们连乘起来就好了。</p>
 <h3 id="神经网络语言模型">神经网络语言模型</h3>
 <p>词向量是训练神经网络的副产品，对于词汇表中的任一个单词，我们用一个低秩向量表示。训练一个以得到词向量为目标的神经网络，会从以下方面考虑</p>
 <ol type="1">
 <li>词语之间的相似性可以通过词向量来体现</li>
 <li>相似的”的词对应的词向量也是相似的</li>
-<li>概率函数关于词向量是光滑的，即词向量中的一个小变化对概率的影响也只是一个小变化。这样一来，对于下面这些句子，
-只要在语料库中出现一个，其他句子的概率也会相应的增大</li>
+<li>概率函数关于词向量是光滑的，即词向量中的一个小变化对概率的影响也只是一个小变化。这样一来，对于下面这些句子， 只要在语料库中出现一个，其他句子的概率也会相应的增大</li>
 </ol>
 <blockquote>
 <p>A dog is running in the room<br />
@@ -263,101 +253,57 @@ The cat is running in a room<br />
 A dog is walking in a bedroom<br />
 The dog was walking in the room</p>
 </blockquote>
-<p>常见的词向量表示方式有 one-hot representation 和 Distributed
-representation</p>
+<p>常见的词向量表示方式有 one-hot representation 和 Distributed representation</p>
 <h4 id="one-hot-representation">one-hot representation</h4>
-<p>一种最简单的词向量方式是One-Hot编码
-，就是用一个很长的向量来表示一个词，向量的长度为词典的大小，向量中只有一个
-1 ， 其他全为 0 ，1 的位置对应该词在词典中的位置。
-但是这种方法存在一些问题</p>
+<p>一种最简单的词向量方式是One-Hot编码 ，就是用一个很长的向量来表示一个词，向量的长度为词典的大小，向量中只有一个 1 ， 其他全为 0 ，1 的位置对应该词在词典中的位置。 但是这种方法存在一些问题</p>
 <ol type="1">
 <li>容易出现维灾</li>
 <li>无法表达词和词之间的相似性</li>
 <li>稀疏性无法保证有效训练 存在训练不充分的问题</li>
 </ol>
 <h4 id="distributed-representation">distributed representation</h4>
-<p>Distributed Representation最早是Hinton于1986年提出的，可以克服One-Hot
-Representation的上述缺点。其基本想法是：通过训练将某种语言中的每一个词
-映射成一个固定长度的短向量（当然这里的“短”是相对于One-Hot
-Representation的“长”而言的），所有这些向量构成一个词向量空间，而每一个向量则可视为
-该空间中的一个点，在这个空间上引入“距离”，就可以根据词之间的距离来判断它们之间的语法、语义上的相似性了。Word2Vec中采用的就是这种Distributed
-Representation 的词向量。</p>
+<p>Distributed Representation最早是Hinton于1986年提出的，可以克服One-Hot Representation的上述缺点。其基本想法是：通过训练将某种语言中的每一个词 映射成一个固定长度的短向量（当然这里的“短”是相对于One-Hot Representation的“长”而言的），所有这些向量构成一个词向量空间，而每一个向量则可视为 该空间中的一个点，在这个空间上引入“距离”，就可以根据词之间的距离来判断它们之间的语法、语义上的相似性了。Word2Vec中采用的就是这种Distributed Representation 的词向量。</p>
 <h3 id="word2vec">word2vec</h3>
-<p>word2vec本质是一个分类任务，中心词和上下文词的共现性来刻画词和词之间的相似性。损失函数可以从最大似然函数或者最小交叉熵(二者是一致的，似然函数maxmize可以通过添加符号做形式变换整理成最小交叉熵的形式)。
-同时机器学习使用的交叉熵损失函数和信息论的交叉熵略有不同</p>
+<p>word2vec本质是一个分类任务，中心词和上下文词的共现性来刻画词和词之间的相似性。损失函数可以从最大似然函数或者最小交叉熵(二者是一致的，似然函数maxmize可以通过添加符号做形式变换整理成最小交叉熵的形式)。 同时机器学习使用的交叉熵损失函数和信息论的交叉熵略有不同</p>
 <ol type="1">
-<li><p>在机器学习看来，信息论里的交叉熵仅仅是针对一个样本的交叉熵，在机器学习进行优化时，会把所有样本的交叉熵值做一个平均，即机器学习的交叉熵损失函数定义为：假设有N个样本
-<span class="math inline">\(J = -\frac{1}{N}\sum_{n=1}^N H(p_n,
-q_n)\)</span></p></li>
-<li><p>因为交叉熵常用于解决分类问题，而分类问题(我们一般说分类问题，是指单标签多分类问题)的概率本质是计算类别变量的广义的伯努利分布，所以机器学习采用的是交叉熵的离散形式<span
-class="math inline">\(J = -\frac{1}{N}\sum_{n=1}^N \sum
-_{i=1}t_i\ln{s_i}\)</span>. 其中， <span
-class="math inline">\(t_i\)</span>是期望的类别标签，<span
-class="math inline">\(s_i\)</span>是模型对第<span
-class="math inline">\(i\)</span>个类别计算得到的score，通常在计算损失之前，我们会用激活函数(sigmoid
-或者 softmax)加以转换。</p></li>
+<li><p>在机器学习看来，信息论里的交叉熵仅仅是针对一个样本的交叉熵，在机器学习进行优化时，会把所有样本的交叉熵值做一个平均，即机器学习的交叉熵损失函数定义为：假设有N个样本 <span class="math inline">\(J = -\frac{1}{N}\sum_{n=1}^N H(p_n, q_n)\)</span></p></li>
+<li><p>因为交叉熵常用于解决分类问题，而分类问题(我们一般说分类问题，是指单标签多分类问题)的概率本质是计算类别变量的广义的伯努利分布，所以机器学习采用的是交叉熵的离散形式<span class="math inline">\(J = -\frac{1}{N}\sum_{n=1}^N \sum _{i=1}t_i\ln{s_i}\)</span>. 其中， <span class="math inline">\(t_i\)</span>是期望的类别标签，<span class="math inline">\(s_i\)</span>是模型对第<span class="math inline">\(i\)</span>个类别计算得到的score，通常在计算损失之前，我们会用激活函数(sigmoid 或者 softmax)加以转换。</p></li>
 </ol>
 <blockquote>
 <p>为什么说分类问题的概率本质是计算类别变量的广义伯努利分布呢？</p>
 </blockquote>
-<p>因为对于分类问题，假设模型的输出层上只有2个输出结点，而且是一个二分类单标签问题，如果输出层用符号<span
-class="math inline">\(Y\)</span>表示，那么Y服从0-1分布(是二项分布的特例，或称伯努利分布，二元分布)，即随机变量<span
-class="math inline">\(Y\)</span>的样本空间有两个样本点(分别对应输出层的两个输出结点)，每个样本点就是一个类别。我们希望机器学习模型训练出的分布是某个类别的概率为1，另一个类别的概率为0。推广到多分类单标签问题，那么<span
-class="math inline">\(Y\)</span>服从广义的伯努利分布(是多项式分布的特例，或称Category分布，范畴分布，类别分布，Multinoulli分布)</p>
-<h4
-id="伯努利分布及其极大似然和交叉熵">伯努利分布及其极大似然和交叉熵</h4>
-<p>假设伯努利分布 <span class="math inline">\(Y \in \{0, 1\}\)</span>,
-并假y=1的概率为<span class="math inline">\(P(y=1) =
-p\)</span>，那么其概率质量函数(Probability Mass Function，PMF): <span
-class="math inline">\(P(Y|p) = p^Y(1-p)^{1-y}\)</span>, 假设<span
-class="math inline">\(D =\{y_1, y_2, \dots y_N \}\)</span> 是来自<span
-class="math inline">\(Y\)</span>的并且样本容量为N的样本，那么似然函数为:</p>
+<p>因为对于分类问题，假设模型的输出层上只有2个输出结点，而且是一个二分类单标签问题，如果输出层用符号<span class="math inline">\(Y\)</span>表示，那么Y服从0-1分布(是二项分布的特例，或称伯努利分布，二元分布)，即随机变量<span class="math inline">\(Y\)</span>的样本空间有两个样本点(分别对应输出层的两个输出结点)，每个样本点就是一个类别。我们希望机器学习模型训练出的分布是某个类别的概率为1，另一个类别的概率为0。推广到多分类单标签问题，那么<span class="math inline">\(Y\)</span>服从广义的伯努利分布(是多项式分布的特例，或称Category分布，范畴分布，类别分布，Multinoulli分布)</p>
+<h4 id="伯努利分布及其极大似然和交叉熵">伯努利分布及其极大似然和交叉熵</h4>
+<p>假设伯努利分布 <span class="math inline">\(Y \in \{0, 1\}\)</span>, 并假y=1的概率为<span class="math inline">\(P(y=1) = p\)</span>，那么其概率质量函数(Probability Mass Function，PMF): <span class="math inline">\(P(Y|p) = p^Y(1-p)^{1-y}\)</span>, 假设<span class="math inline">\(D =\{y_1, y_2, \dots y_N \}\)</span> 是来自<span class="math inline">\(Y\)</span>的并且样本容量为N的样本，那么似然函数为:</p>
 <p><span class="math display">\[\begin{equation}
 P(D|p) = \prod_{i = 1}^{N} p^{y_i}(1-p)^{1 - y_i}
 \end{equation}\]</span></p>
-<p>在机器学习中，我们会创建参数为<span
-class="math inline">\(\theta\)</span>的模型，所以之前的概率<span
-class="math inline">\(p\)</span>会写成一个函数的形式<span
-class="math inline">\(p(Y = 1|\theta,
-x)\)</span>,那么最新的似然函数是</p>
+<p>在机器学习中，我们会创建参数为<span class="math inline">\(\theta\)</span>的模型，所以之前的概率<span class="math inline">\(p\)</span>会写成一个函数的形式<span class="math inline">\(p(Y = 1|\theta, x)\)</span>,那么最新的似然函数是</p>
 <p><span class="math display">\[\begin{equation}\begin{split}
-P(D|\theta, X) &amp;= \prod_{i = 1}^N p(Y=1|\theta, x_i)^{y_i}(1 -
-p(Y=1|\theta, x_i))^{1-y_i} \\
+P(D|\theta, X) &amp;= \prod_{i = 1}^N p(Y=1|\theta, x_i)^{y_i}(1 - p(Y=1|\theta, x_i))^{1-y_i} \\
 \end{split}\end{equation}\]</span></p>
-<p>所以我们从PMF得到对数似然函数(log-likelyhood): <span
-class="math display">\[\begin{equation}\begin{split}
-L(\mathbf{\theta}|D,X) &amp;= \log{\prod_{i = 1}^N p(Y=1|\theta,
-x_i)^{y_i}(1 - p(Y=1|\theta, x_i))^{1-y_i}} \\
-&amp;= \sum_{i = 1}^N y_i \ln{p(Y=1|\theta, x_i)} + (1 - y_i)\ln{(1 -
-p(Y=1|\theta, x_i))} \\
+<p>所以我们从PMF得到对数似然函数(log-likelyhood): <span class="math display">\[\begin{equation}\begin{split}
+L(\mathbf{\theta}|D,X) &amp;= \log{\prod_{i = 1}^N p(Y=1|\theta, x_i)^{y_i}(1 - p(Y=1|\theta, x_i))^{1-y_i}} \\
+&amp;= \sum_{i = 1}^N y_i \ln{p(Y=1|\theta, x_i)} + (1 - y_i)\ln{(1 - p(Y=1|\theta, x_i))} \\
 \end{split}\end{equation}\]</span></p>
-<p>下面我们将说明最大似然函数和最小交叉熵损失其实是同一个损失函数，一般的我们把机器学习模型输出的结果记为<span
-class="math inline">\(\hat{y}\)</span></p>
+<p>下面我们将说明最大似然函数和最小交叉熵损失其实是同一个损失函数，一般的我们把机器学习模型输出的结果记为<span class="math inline">\(\hat{y}\)</span></p>
 <p><span class="math display">\[\begin{equation}\begin{split}
-\theta  &amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i = 1}^N y_i
-\ln{p(Y=1|\theta, x_i)} + (1 - y_i)\ln{(1 - p(Y=1|\theta, x_i))}\\
-&amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i = 1}^N y_i \ln{\hat{y}_i}
-+ (1 - y_i)\ln{(1 - \hat{y}_i)} \\
-&amp;= \mathop{\arg\min}_{\theta} \ \ -\sum_{i = 1}^N y_i \ln{\hat{y}_i}
-+ (1 - y_i)\ln{(1 - \hat{y}_i)} \\
+\theta  &amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i = 1}^N y_i \ln{p(Y=1|\theta, x_i)} + (1 - y_i)\ln{(1 - p(Y=1|\theta, x_i))}\\
+&amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i = 1}^N y_i \ln{\hat{y}_i} + (1 - y_i)\ln{(1 - \hat{y}_i)} \\
+&amp;= \mathop{\arg\min}_{\theta} \ \ -\sum_{i = 1}^N y_i \ln{\hat{y}_i} + (1 - y_i)\ln{(1 - \hat{y}_i)} \\
 &amp;= \mathop{\arg\min}_{\theta} \ \ \sum_{i=1}^N H(y_i, \hat{y}_i)
 \end{split}\end{equation}\]</span></p>
-<h4
-id="广义伯努利分布及其极大似然和交叉熵">广义伯努利分布及其极大似然和交叉熵</h4>
+<h4 id="广义伯努利分布及其极大似然和交叉熵">广义伯努利分布及其极大似然和交叉熵</h4>
 <p>广义伯努利分布又被称做categorical分布，它的一般形式如下</p>
 <p><span class="math display">\[\begin{equation}\begin{split}
-P(X_k=1|\theta_1,\theta_2, \dots, \theta_K) &amp;= \prod_{k=1}^K
-\theta_k^{x_k} \\
+P(X_k=1|\theta_1,\theta_2, \dots, \theta_K) &amp;= \prod_{k=1}^K \theta_k^{x_k} \\
 
 \sum_{k=1}^K \theta_k &amp;= 1 \\
 
 x_k \in \{0, 1\}, \sum_{k=1}^K x_k &amp;= 1 \\
 
 \end{split}\end{equation}\]</span></p>
-<p>我们常用one-hot向量表示选中的category, 同样假设<span
-class="math inline">\(D =\{y_1, y_2, \dots y_N \}\)</span> 是来自<span
-class="math inline">\(Y\)</span>的并且样本容量为N的样本。 PMF函数为
-<span class="math display">\[
+<p>我们常用one-hot向量表示选中的category, 同样假设<span class="math inline">\(D =\{y_1, y_2, \dots y_N \}\)</span> 是来自<span class="math inline">\(Y\)</span>的并且样本容量为N的样本。 PMF函数为 <span class="math display">\[
 \begin{split}
 P(Y|p_1,p_2, \dots, p_k) &amp;= \prod_{i=1}^K p_i^{y_i} \\
 y_i &amp;\in \{0, 1\}
@@ -365,21 +311,15 @@ y_i &amp;\in \{0, 1\}
 \]</span></p>
 <p>引入模型参数那么新的似然函数为</p>
 <p><span class="math display">\[\begin{equation}
-P(D|\theta, \mathbf{X}) =\prod_{i=1}^N \prod_{j=1}^K p_j(\theta,
-x_i)^{y_j}
+P(D|\theta, \mathbf{X}) =\prod_{i=1}^N \prod_{j=1}^K p_j(\theta, x_i)^{y_j}
 \end{equation}\]</span></p>
-<p>其对数似然函数 <span
-class="math display">\[\begin{equation}\begin{split}
-L(\theta|D, X) &amp;= \sum_{i=1}^N \sum_{j=1}^K y_i^{(j)}\ln{p_j(\theta,
-x_j)} \\
+<p>其对数似然函数 <span class="math display">\[\begin{equation}\begin{split}
+L(\theta|D, X) &amp;= \sum_{i=1}^N \sum_{j=1}^K y_i^{(j)}\ln{p_j(\theta, x_j)} \\
 &amp;= \sum_{i=1}^N \sum_{j=1}^K y_i^{(j)}\ln{\hat{y}_i^{(j)}}
 \end{split}\end{equation}\]</span></p>
-<p>其目标优化函数 <span
-class="math display">\[\begin{equation}\begin{split}
-\theta &amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i=1}^N \sum_{j=1}^K
-y_i^{(j)}\ln{\hat{y}_i^{(j)}} \\
-&amp;= \mathop{\arg\min}_{\theta} \ \ -\sum_{i=1}^N \sum_{j=1}^K
-y_i^{(j)}\ln{\hat{y}_i^{(j)}} \\
+<p>其目标优化函数 <span class="math display">\[\begin{equation}\begin{split}
+\theta &amp;= \mathop{\arg\max}_{\theta} \ \ \sum_{i=1}^N \sum_{j=1}^K y_i^{(j)}\ln{\hat{y}_i^{(j)}} \\
+&amp;= \mathop{\arg\min}_{\theta} \ \ -\sum_{i=1}^N \sum_{j=1}^K y_i^{(j)}\ln{\hat{y}_i^{(j)}} \\
 &amp;= \mathop{\arg\min}_{\theta} \ \ \sum_{i=1}^NH(y_i, \hat{y}_i)
 \end{split}\end{equation}\]</span></p>
 <p>稍微小结一下:</p>
@@ -388,12 +328,8 @@ y_i^{(j)}\ln{\hat{y}_i^{(j)}} \\
 <li>机器学习中的多分类问题是本质是一个广义伯努利分布(categorical分布)</li>
 </ol>
 <h3 id="候选采样candidate-sampling">候选采样candidate sampling</h3>
-<p>在word2vec论文中提出了两种模型，Continuous Bag-of-words Model 和
-Continuous Skip-gram
-Model，俩者的主要区别在于输入和输出。CBOW输入是上下文词，输出是中心词。SG正好相反。
-在开始讲模型之前还要多铺垫一个知识，candidate sampling。</p>
-<p>在机器学习中，经常用一个softmax层来处理多分类任务,
-输出是一个one-hot编码向量。</p>
+<p>在word2vec论文中提出了两种模型，Continuous Bag-of-words Model 和 Continuous Skip-gram Model，俩者的主要区别在于输入和输出。CBOW输入是上下文词，输出是中心词。SG正好相反。 在开始讲模型之前还要多铺垫一个知识，candidate sampling。</p>
+<p>在机器学习中，经常用一个softmax层来处理多分类任务, 输出是一个one-hot编码向量。</p>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
 \hat{y}_i &amp;= \frac{e^{z_i}}{\sum_{j=1}^K e^{z_j} } \\
@@ -402,81 +338,42 @@ J &amp;= -\sum_{i=1}^K y_i\ln{\hat{y}_i} \\
 &amp;= -z_{pos} + \ln{\sum_{i=1}^K e^{z_i}}
 \end{split}
 \end{equation}\]</span></p>
-<p>假设<span class="math inline">\(z = -\xi{(w)}\)</span>, 那么 <span
-class="math display">\[
+<p>假设<span class="math inline">\(z = -\xi{(w)}\)</span>, 那么 <span class="math display">\[
 J = \xi{(w_{pos})} + \ln\sum_{i=1}^K e^{-\xi{(w_i)}}
-\]</span> 注意上面式子的理解, <span
-class="math inline">\(w_{pos}\)</span>是对应的正例(label值为1的)。那么对其求导可以得到</p>
+\]</span> 注意上面式子的理解, <span class="math inline">\(w_{pos}\)</span>是对应的正例(label值为1的)。那么对其求导可以得到</p>
 <p><span class="math display">\[\begin{equation}\label{eq:gradent}
 \begin{split}
-\nabla_{\theta}J &amp;= \nabla_{\theta} \xi{(w_{pos})} +
-\nabla_{\theta}\ln\sum_{i=1}^K e^{-\xi{(w_i)}} \\
-&amp;= \nabla_{\theta} \xi{(w_{pos})} + \frac{1}{\sum_{i=1}^K
-e^{-\xi{(w_i)}}}\nabla_{\theta}\sum_{i=1}^K e^{-\xi{(w_i)}} \\
-&amp;= \nabla_{\theta} \xi{(w_{pos})} + \frac{1}{\sum_{i=1}^K
-e^{-\xi{(w_i)}}}\sum_{i=1}^K e^{-\xi{(w_i)}}
-\nabla_{\theta}{-\xi{(w_i)}} \\
-&amp;= \nabla_{\theta} \xi{(w_{pos})} -
-\sum_{i=1}^K\frac{e^{-\xi{(w_i)}}}{\sum_{i=1}^K
-e^{-\xi{(w_i)}}}  \nabla_{\theta}{\xi{(w_i)}} \\
+\nabla_{\theta}J &amp;= \nabla_{\theta} \xi{(w_{pos})} + \nabla_{\theta}\ln\sum_{i=1}^K e^{-\xi{(w_i)}} \\
+&amp;= \nabla_{\theta} \xi{(w_{pos})} + \frac{1}{\sum_{i=1}^K e^{-\xi{(w_i)}}}\nabla_{\theta}\sum_{i=1}^K e^{-\xi{(w_i)}} \\
+&amp;= \nabla_{\theta} \xi{(w_{pos})} + \frac{1}{\sum_{i=1}^K e^{-\xi{(w_i)}}}\sum_{i=1}^K e^{-\xi{(w_i)}} \nabla_{\theta}{-\xi{(w_i)}} \\
+&amp;= \nabla_{\theta} \xi{(w_{pos})} - \sum_{i=1}^K\frac{e^{-\xi{(w_i)}}}{\sum_{i=1}^K e^{-\xi{(w_i)}}}  \nabla_{\theta}{\xi{(w_i)}} \\
 \end{split}
 \end{equation}\]</span></p>
-<p>上述公式<span
-class="math inline">\(\ref{eq:gradent}\)</span>中，说明了两件事</p>
+<p>上述公式<span class="math inline">\(\ref{eq:gradent}\)</span>中，说明了两件事</p>
 <ol type="1">
-<li><span class="math inline">\(\nabla_{\theta}
-\xi{(w_{pos})}\)</span>是关于正样本的梯度，可以理解为对目标词的正面优化</li>
-<li>剩下的右边部分是所有样本概率对应梯度的累加和(想一想为什么有个负号
-是不是值越小对应概率越大?)
-可以理解为其它词汇的负向优化。在基于采样的优化当中，我们不需要计算所有类别的累加，只需要通过采样求到<span
-class="math inline">\(\nabla_{\theta}{(\xi{(w_i))}}\)</span>在分布的期望即可，这个分布指<span
-class="math inline">\(p{(w_i|c)}\)</span></li>
+<li><span class="math inline">\(\nabla_{\theta} \xi{(w_{pos})}\)</span>是关于正样本的梯度，可以理解为对目标词的正面优化</li>
+<li>剩下的右边部分是所有样本概率对应梯度的累加和(想一想为什么有个负号 是不是值越小对应概率越大?) 可以理解为其它词汇的负向优化。在基于采样的优化当中，我们不需要计算所有类别的累加，只需要通过采样求到<span class="math inline">\(\nabla_{\theta}{(\xi{(w_i))}}\)</span>在分布的期望即可，这个分布指<span class="math inline">\(p{(w_i|c)}\)</span></li>
 </ol>
 <p><span class="math display">\[
-\sum_{i=1}^K\frac{e^{-\xi{(w_i)}}}{\sum_{i=1}^K
-e^{-\xi{(w_i)}}}  \nabla_{\theta}{\xi{(w_i)}} = \sum_{i=1}^K p(w_i|c)
-\nabla_{\theta}{\xi{(w_i)}} = \mathbb{E}_{w_i \sim
-p}[\nabla_{\theta}{\xi{(w_i)}}]
+\sum_{i=1}^K\frac{e^{-\xi{(w_i)}}}{\sum_{i=1}^K e^{-\xi{(w_i)}}}  \nabla_{\theta}{\xi{(w_i)}} = \sum_{i=1}^K p(w_i|c) \nabla_{\theta}{\xi{(w_i)}} = \mathbb{E}_{w_i \sim p}[\nabla_{\theta}{\xi{(w_i)}}]
 \]</span></p>
-<p>那么接下来的问题就变成了如何准确的计算梯度在概率分布<span
-class="math inline">\(p(w_i)\)</span>上的期望:</p>
+<p>那么接下来的问题就变成了如何准确的计算梯度在概率分布<span class="math inline">\(p(w_i)\)</span>上的期望:</p>
 <p><span class="math display">\[
 \mathbb{E}_{w_i \sim p(w_i)}[\nabla_{\theta}{\xi{(w_i)}}]
 \]</span></p>
 <h4 id="importance-sampling">Importance Sampling</h4>
-<p>关于采样这块，经典书籍PRML有对其完整的介绍，我们直接给出importance
-sampling的具体做法，以后我会把所有的samling做一个归纳和总结</p>
-<span class="math display">\[\begin{split}
-r(w) &amp;= \frac{e^{\xi{(w)}}}{Q(w)} \\
-\mathbb{E}_{w_i \sim p} &amp; \simeq
-\frac{r(w_1)\nabla_{\theta}{\xi{(w_1)}} + \dots +
-r(w_m)\nabla_{\theta}{\xi{(w_m)}}}{r(w_1) + \dots + r(w_m)} \\
-
-&amp; = \frac{\sum_{i=1}^m r(w_i)
-\nabla_{\theta}{\xi{(w_i)}}}{\sum_{i=1}^mr(w_i)}
-\end{split}\]</span>
-<p>其中<span
-class="math inline">\(Q(w)\)</span>是一个一元分布(比如一个均匀分布)</p>
-<p>impoatance sampling
-可以把不可计算的期望变得可算，但是似乎还没有减少计算量，还有其它办法来减少计算吗？</p>
+<p>关于采样这块，经典书籍PRML有对其完整的介绍，我们直接给出importance sampling的具体做法，以后我会把所有的samling做一个归纳和总结</p>
+<p>\begin{split} r(w) &amp;=  \ _{w_i p} &amp;  \</p>
+<p>&amp; =  \end{split}</p>
+<p>其中<span class="math inline">\(Q(w)\)</span>是一个一元分布(比如一个均匀分布)</p>
+<p>impoatance sampling 可以把不可计算的期望变得可算，但是似乎还没有减少计算量，还有其它办法来减少计算吗？</p>
 <h4 id="noise-contrastive-estimation">Noise Contrastive Estimation</h4>
 <p>在NCE中，完全推翻上述方法并从试图从另外一个角度来解决多分类问题loss计算的问题——我们能否找到一个损失函数用于替代原来的损失计算，从而避免softmax中归一化因子的计算。</p>
-<p>NCE的基本思想是将多分类问题转换成为二分类问题，从噪音分布中采样，减少优化过程的计算复杂度。它是importance
-Sampling的改良升级方法。基本思想是将最终问题转换为一个二分类代理问题，将target词和非target词做一个二分类任务标签。通常我们将非target词叫做noise
-examples，即噪声数据。而这些noise样本会服从某个noise分布Q(w),这个Q(w)需要我们人工引入。相对的，我们的target词也是来自于一个分布，这个分布我们通常叫做emprical分布，即经验分<span
-class="math inline">\(\tilde{p}(w|c),
-\tilde{p}(c)\)</span>。我们的目的就是要学习参数<span
-class="math inline">\(\theta\)</span>, 使得我们计算得到的<span
-class="math inline">\(p_{theta}(w|c)\)</span>无限逼近经验分布<span
-class="math inline">\(\tilde{p}(w|c)\)</span>。</p>
+<p>NCE的基本思想是将多分类问题转换成为二分类问题，从噪音分布中采样，减少优化过程的计算复杂度。它是importance Sampling的改良升级方法。基本思想是将最终问题转换为一个二分类代理问题，将target词和非target词做一个二分类任务标签。通常我们将非target词叫做noise examples，即噪声数据。而这些noise样本会服从某个noise分布Q(w),这个Q(w)需要我们人工引入。相对的，我们的target词也是来自于一个分布，这个分布我们通常叫做emprical分布，即经验分<span class="math inline">\(\tilde{p}(w|c), \tilde{p}(c)\)</span>。我们的目的就是要学习参数<span class="math inline">\(\theta\)</span>, 使得我们计算得到的<span class="math inline">\(p_{theta}(w|c)\)</span>无限逼近经验分布<span class="math inline">\(\tilde{p}(w|c)\)</span>。</p>
 <p>下面来看如何得到新的二分类问题的训练集</p>
 <ol type="1">
-<li>从经验分布即原数据集 <span
-class="math inline">\(\tilde{p}(c)\)</span> 中采样得到context词c</li>
-<li>从经验分布即原数据集 <span
-class="math inline">\(\tilde{p}(w|c)\)</span>
-中采样一个正确的样本w，即target词，标签记为d=1
-从noise分布中采样K个noise样本，即非target词，标签记为d=0</li>
+<li>从经验分布即原数据集 <span class="math inline">\(\tilde{p}(c)\)</span> 中采样得到context词c</li>
+<li>从经验分布即原数据集 <span class="math inline">\(\tilde{p}(w|c)\)</span> 中采样一个正确的样本w，即target词，标签记为d=1 从noise分布中采样K个noise样本，即非target词，标签记为d=0</li>
 </ol>
 <p>给定context词 (d,w)的联合概率为</p>
 <p><span class="math display">\[\begin{equation}
@@ -485,125 +382,76 @@ p(d, w|c) = \begin{cases}
 \frac{1}{1 + K} * \tilde{p}(w|c), &amp;\text{if d = 1}
 \end{cases}
 \end{equation}\]</span></p>
-<p>利用条件概率公式，可以将上述概率式子转换为d给定w和c的条件概率公式
-<span class="math display">\[\begin{equation}
+<p>利用条件概率公式，可以将上述概率式子转换为d给定w和c的条件概率公式 <span class="math display">\[\begin{equation}
 \begin{split}
-p(d=0|w, c) &amp;= \frac{p(d=0, w|c)}{p(w|c)} = \frac{
-\frac{K}{1+K}*Q(w)}{\frac{1}{1+K}*\tilde{p}(w|c) +\frac{K}{1+K}*Q(w)} =
-\frac{K*Q(w)}{\tilde{p}(w|c) + K*Q(w)} \\
+p(d=0|w, c) &amp;= \frac{p(d=0, w|c)}{p(w|c)} = \frac{ \frac{K}{1+K}*Q(w)}{\frac{1}{1+K}*\tilde{p}(w|c) +\frac{K}{1+K}*Q(w)} = \frac{K*Q(w)}{\tilde{p}(w|c) + K*Q(w)} \\
 
-p(d=1|w, c) &amp;= \frac{p(d=1, w|c)}{p(w|c)} = \frac{
-\frac{1}{1+K}*\tilde{p}(w|c)}{\frac{1}{1+K}*\tilde{p}(w|c)
-+\frac{K}{1+K}*Q(w)} = \frac{\tilde{p}(w,|c)}{\tilde{p}(w|c) + K*Q(w)}
+p(d=1|w, c) &amp;= \frac{p(d=1, w|c)}{p(w|c)} = \frac{ \frac{1}{1+K}*\tilde{p}(w|c)}{\frac{1}{1+K}*\tilde{p}(w|c) +\frac{K}{1+K}*Q(w)} = \frac{\tilde{p}(w,|c)}{\tilde{p}(w|c) + K*Q(w)}
 \end{split}
 \end{equation}\]</span></p>
-<p>NCE通过学习<span
-class="math inline">\(p_{\theta}\)</span>来逼近替代<span
-class="math inline">\(\tilde{p}(w|c)\)</span>
-，而学习的过程就是去最大化上述条件概率式的过程。</p>
+<p>NCE通过学习<span class="math inline">\(p_{\theta}\)</span>来逼近替代<span class="math inline">\(\tilde{p}(w|c)\)</span> ，而学习的过程就是去最大化上述条件概率式的过程。</p>
 <p>说到这里，貌似NCE还没解决做除法的高成本问题，目前为止只是通过增加一些noise负样本将目标函数做了转化。因此NCE还引入了两个假设。</p>
 <blockquote>
 <ol type="1">
-<li>将分母<span
-class="math inline">\(z_{\theta}(c)\)</span>近似估计为一个参数<span
-class="math inline">\(z_c\)</span>
-,这样对任意一个样本context词c来说，都只引入了同一个参数。</li>
-<li>对于神经网络参数繁多的情况，当我们令<span
-class="math inline">\(z_c\)</span>固定为1时，能够有效地减小参数的数量，同时鼓励模型对输出进行自标准化。</li>
+<li>将分母<span class="math inline">\(z_{\theta}(c)\)</span>近似估计为一个参数<span class="math inline">\(z_c\)</span> ,这样对任意一个样本context词c来说，都只引入了同一个参数。</li>
+<li>对于神经网络参数繁多的情况，当我们令<span class="math inline">\(z_c\)</span>固定为1时，能够有效地减小参数的数量，同时鼓励模型对输出进行自标准化。</li>
 </ol>
 </blockquote>
-<p>引入上述两条假设后， 重写概率公式 <span
-class="math inline">\(\tilde{p}(w|c)\approx \frac{e^{s_{\theta}(w,
-c)}}{\sum_{w^{&#39;}} s_{\theta}(w^{&#39;}, c) }\)</span></p>
+<p>引入上述两条假设后， 重写概率公式 <span class="math inline">\(\tilde{p}(w|c)\approx \frac{e^{s_{\theta}(w, c)}}{\sum_{w^{&#39;}} s_{\theta}(w^{&#39;}, c) }\)</span></p>
 <p>此时</p>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
 p(d=0|w, c) &amp;= \frac{K*Q(w)}{e^{s_{\theta}(w, c)} + K*Q(w)} \\
-p(d=1|w, c) &amp;= \frac{e^{s_{\theta}(w, c)}}{e^{s_{\theta}(w, c)} +
-K*Q(w)}
+p(d=1|w, c) &amp;= \frac{e^{s_{\theta}(w, c)}}{e^{s_{\theta}(w, c)} + K*Q(w)}
 \end{split}
 \end{equation}\]</span></p>
 <p>假设我们的原始语料样本为T，接下来就是将所有样本的条件概率结合起来，同时应用log函数，防止数据下溢，得到我们的目标优化函数(针对单个样本)</p>
 <p><span class="math display">\[\begin{equation}\label{eq:nceloss}
 \begin{split}
-J &amp;=  \ln{p(d=1|w, c)} + K * E_{w^{&#39;} \sim Q} \ln{p(d=0|w, c)}
-\\
-&amp;=  \ln{p(d=1|w, c)} + K * \sum_{i=1, w^{&#39;} \sim Q}^K
-\frac{1}{K}\ln{p(d=0|w, c)} \\
-&amp;=  \ln{p(d=1|w, c)} + \sum_{i=1, w^{&#39;} \sim Q}^K \ln{p(d=0|w,
-c)}
+J &amp;=  \ln{p(d=1|w, c)} + K * E_{w^{&#39;} \sim Q} \ln{p(d=0|w, c)} \\
+&amp;=  \ln{p(d=1|w, c)} + K * \sum_{i=1, w^{&#39;} \sim Q}^K \frac{1}{K}\ln{p(d=0|w, c)} \\
+&amp;=  \ln{p(d=1|w, c)} + \sum_{i=1, w^{&#39;} \sim Q}^K \ln{p(d=0|w, c)}
 \end{split}
 \end{equation}\]</span></p>
-<p>上述式子中加法的前一项很简单没问题，但是后一项求解期望的计算量还是比较大的，需要在给定context词c条件下，在词库V中引入的noise分布中采样生成一个负样本，并计算概率的期望值，对整个词库还是有一个次遍历。因此最后一步，NCE使用了Monte
-Carlo估计来替代这个概率期望。这样就不需要遍历整个词库了，只需要从Q分布的部分词集计算就可以了。</p>
+<p>上述式子中加法的前一项很简单没问题，但是后一项求解期望的计算量还是比较大的，需要在给定context词c条件下，在词库V中引入的noise分布中采样生成一个负样本，并计算概率的期望值，对整个词库还是有一个次遍历。因此最后一步，NCE使用了Monte Carlo估计来替代这个概率期望。这样就不需要遍历整个词库了，只需要从Q分布的部分词集计算就可以了。</p>
 <h4 id="negative-sampling">negative sampling</h4>
-<p>上面的NCE可能还是有些复杂，因此有的学者又在此基础上做了简化，Mikolov在2012年的paper上介绍了在word2vec中使用的采样方法——Negative
-Sampling，又叫负采样。</p>
+<p>上面的NCE可能还是有些复杂，因此有的学者又在此基础上做了简化，Mikolov在2012年的paper上介绍了在word2vec中使用的采样方法——Negative Sampling，又叫负采样。</p>
 <p>基本思想在于：每采样一个target词，就采样k个非target词（即负样本）。可以看到他跟NCE的基本思想是类似的，但是具体实现的时候又有不同。</p>
 <p>不同于NCE，负采样在定义p(d|w,c)时采取了更加简单的实现：</p>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
 p(d=0|w, c) &amp;= \frac{1}{e^{s_{\theta}(w, c)} + 1} \\
 
-p(d=1|w,c) &amp;= \frac{e^{s_{\theta}(w, c)}}{e^{s_{\theta}(w, c)} + 1}
-\\
+p(d=1|w,c) &amp;= \frac{e^{s_{\theta}(w, c)}}{e^{s_{\theta}(w, c)} + 1} \\
 \end{split}
 \end{equation}\]</span></p>
 <p>其实它与NCE的概率式子是有联系的，即在NCE中，令K=|V|,且Q分布是一个均匀分布，那么就可以得到负采样的式子。最后列一下负采样的目标函数</p>
 <p><span class="math display">\[
 \begin{split}
-J &amp;=  \ln{p(d=1|w, c)} + K * \sum_{i=1, w^{&#39;} \sim Q}^K
-\frac{1}{K}\ln{p(d=0|w, c)} \\
-&amp;=  \ln{\sigma{(s_{\theta}(w, c))}} + \sum_{i=1, w^{&#39;} \sim Q}^K
-\ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}}
+J &amp;=  \ln{p(d=1|w, c)} + K * \sum_{i=1, w^{&#39;} \sim Q}^K \frac{1}{K}\ln{p(d=0|w, c)} \\
+&amp;=  \ln{\sigma{(s_{\theta}(w, c))}} + \sum_{i=1, w^{&#39;} \sim Q}^K \ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}}
 \end{split}
 \]</span></p>
-<p>所以最终我们的优化目标函数长这样(针对一个batch N个样本) <span
-class="math display">\[\begin{equation}
+<p>所以最终我们的优化目标函数长这样(针对一个batch N个样本) <span class="math display">\[\begin{equation}
 \begin{split}
-\mathop{\arg\max}_{\theta} &amp; \frac{1}{N}\sum_{( w, c \in T)}(
-\ln{\sigma{(s_{\theta}(w, c))}} + \sum_{i=1, w^{&#39;} \sim Q}^K
-\ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}} )\\
+\mathop{\arg\max}_{\theta} &amp; \frac{1}{N}\sum_{( w, c \in T)}( \ln{\sigma{(s_{\theta}(w, c))}} + \sum_{i=1, w^{&#39;} \sim Q}^K \ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}} )\\
 
-\mathop{\arg\min}_{\theta} &amp; - \frac{1}{N} \sum_{( w, c \in T)}
-(\ln{\sigma{(s_{\theta}(w, c))}} - \sum_{i=1, w^{&#39;} \sim Q}^K
-\ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}})
+\mathop{\arg\min}_{\theta} &amp; - \frac{1}{N} \sum_{( w, c \in T)} (\ln{\sigma{(s_{\theta}(w, c))}} - \sum_{i=1, w^{&#39;} \sim Q}^K \ln{\sigma{(-s_{\theta}(w^{&#39;}, c))}})
 
 \end{split}
 \end{equation}\]</span></p>
 <blockquote>
 <p>抛一次硬币，正面朝上的概率，这是伯努利分布。<br />
-抛<span class="math inline">\(n\)</span>次硬币，正面朝上出现了<span
-class="math inline">\(m\)</span>次的概率，这是二项分布。<br />
-抛一次骰子，第<span
-class="math inline">\(k\)</span>面朝上的概率，这是categorical分布。<br />
-抛<span class="math inline">\(n\)</span>次骰子， 第<span
-class="math inline">\(1\)</span>面朝上出现了<span
-class="math inline">\(m_1\)</span>次 ，第<span
-class="math inline">\(2\)</span>面朝上出现了<span
-class="math inline">\(m_2\)</span>次......第<span
-class="math inline">\(k\)</span>面朝上出现了<span
-class="math inline">\(m_k\)</span>次的概率，这是多项分布。</p>
+抛<span class="math inline">\(n\)</span>次硬币，正面朝上出现了<span class="math inline">\(m\)</span>次的概率，这是二项分布。<br />
+抛一次骰子，第<span class="math inline">\(k\)</span>面朝上的概率，这是categorical分布。<br />
+抛<span class="math inline">\(n\)</span>次骰子， 第<span class="math inline">\(1\)</span>面朝上出现了<span class="math inline">\(m_1\)</span>次 ，第<span class="math inline">\(2\)</span>面朝上出现了<span class="math inline">\(m_2\)</span>次......第<span class="math inline">\(k\)</span>面朝上出现了<span class="math inline">\(m_k\)</span>次的概率，这是多项分布。</p>
 </blockquote>
 <h2 id="关于word2vec若干问题的思考">关于Word2Vec若干问题的思考</h2>
 <ol type="1">
-<li><p>Word2Vec两个算法模型的原理是什么，网络结构怎么画？
-如果仔细浏览一下论文附带的<a
-target="_blank" rel="noopener" href="https://github.com/tmikolov/word2vec">C源码</a>。会发现不论是CBOW模型还是skip-gram模型，都是用context(也就是上下文词)作为输入，
-中心词word(也就是论文里提到的中心词)作为输出。唯一的差别就在于CBOW取了context词的平均。这其实是一种朴素的思想:
-环境决定结果。所以context输入，中心词word输出</p></li>
-<li><p>怎么做的subsampling
-subsampling的做法是对最原始的序列根据概率做discard，然后再根据pair的方式，生成样本对。这样做的原因是一方面可以打击过热，另一面引入了一些其它的“化学反应”。这就是为什么先做了discard然后
-做pair，否则我们先做pair再discard，就不会出现一些离得稍为远一些的词组成的pair。根据<a
-target="_blank" rel="noopener" href="https://github.com/tmikolov/word2vec">C源码</a>，先discard再pair。</p></li>
-<li><p>我们到底应该把那个矩阵当作需要的词向量呢
-我提出几个关键词，共现，交叉熵。那么对于一个输出矩阵来说，如果其中的两个向量相似，说明它们的context上下文有相似的pattern(比如有共现的context词和非context词)，同样的对于输入矩阵来说，
-如果其中两个向量相似，说明在他们代表的含义空间里相似，这个含义可能就是:这两个向量有共现的中心词和非中心词。对于CBOW方法来说，输出矩阵还是可以用上面所说的理解方式去理解，输入矩阵由于
-取了平均值观上不是很好理解了(含义空间很奇怪)。
-最后，我的观点,不论是CBOW还是SG,
-输入矩阵和输出矩阵都可以作为词向量，但是含义空间各不相同，输出矩阵可能更好理解一点。</p></li>
-<li><p>怎么确定discard和负采样的采样函数
-这里面用了带有parameter的经验公式</p></li>
+<li><p>Word2Vec两个算法模型的原理是什么，网络结构怎么画？ 如果仔细浏览一下论文附带的<a target="_blank" rel="noopener" href="https://github.com/tmikolov/word2vec">C源码</a>。会发现不论是CBOW模型还是skip-gram模型，都是用context(也就是上下文词)作为输入， 中心词word(也就是论文里提到的中心词)作为输出。唯一的差别就在于CBOW取了context词的平均。这其实是一种朴素的思想: 环境决定结果。所以context输入，中心词word输出</p></li>
+<li><p>怎么做的subsampling subsampling的做法是对最原始的序列根据概率做discard，然后再根据pair的方式，生成样本对。这样做的原因是一方面可以打击过热，另一面引入了一些其它的“化学反应”。这就是为什么先做了discard然后 做pair，否则我们先做pair再discard，就不会出现一些离得稍为远一些的词组成的pair。根据<a target="_blank" rel="noopener" href="https://github.com/tmikolov/word2vec">C源码</a>，先discard再pair。</p></li>
+<li><p>我们到底应该把那个矩阵当作需要的词向量呢 我提出几个关键词，共现，交叉熵。那么对于一个输出矩阵来说，如果其中的两个向量相似，说明它们的context上下文有相似的pattern(比如有共现的context词和非context词)，同样的对于输入矩阵来说， 如果其中两个向量相似，说明在他们代表的含义空间里相似，这个含义可能就是:这两个向量有共现的中心词和非中心词。对于CBOW方法来说，输出矩阵还是可以用上面所说的理解方式去理解，输入矩阵由于 取了平均值观上不是很好理解了(含义空间很奇怪)。 最后，我的观点,不论是CBOW还是SG, 输入矩阵和输出矩阵都可以作为词向量，但是含义空间各不相同，输出矩阵可能更好理解一点。</p></li>
+<li><p>怎么确定discard和负采样的采样函数 这里面用了带有parameter的经验公式</p></li>
 </ol>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
@@ -613,35 +461,23 @@ n(w_i) &amp;= \frac{z(w_i)^{0.75}}{\sum_{j=0}^n (z(w_i)^{0.75})}
 \end{split}
 \end{equation}\]</span></p>
 <ol start="5" type="1">
-<li>word2vec有哪些缺陷 Word2Vec只考虑到上下文信息，而忽略的全局信息；
-Word2Vec只考虑了上下文的共现性，而忽略的了彼此之间的顺序性；</li>
+<li>word2vec有哪些缺陷 Word2Vec只考虑到上下文信息，而忽略的全局信息； Word2Vec只考虑了上下文的共现性，而忽略的了彼此之间的顺序性；</li>
 </ol>
 <h2 id="小结">小结</h2>
 <ol type="1">
 <li>明确word2vec的思想，以及它的损失函数</li>
-<li>通过negative sampling方式
-把需要大量的分母计算规避，加速计算，是一种candidate
-sampling思想的运用</li>
+<li>通过negative sampling方式 把需要大量的分母计算规避，加速计算，是一种candidate sampling思想的运用</li>
 <li>注意在构造样本时的采样概率函数构造</li>
 </ol>
 <p>参考:</p>
 <ol type="1">
-<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/114538417"
-class="uri">https://zhuanlan.zhihu.com/p/114538417</a></p></li>
-<li><p><a target="_blank" rel="noopener" href="http://demo.clab.cs.cmu.edu/cdyer/nce_notes.pdf"
-class="uri">http://demo.clab.cs.cmu.edu/cdyer/nce_notes.pdf</a></p></li>
-<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/261694402"
-class="uri">https://zhuanlan.zhihu.com/p/261694402</a></p></li>
-<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/51099880"
-class="uri">https://zhuanlan.zhihu.com/p/51099880</a></p></li>
-<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/261694402"
-class="uri">https://zhuanlan.zhihu.com/p/261694402</a></p></li>
-<li><p><a
-target="_blank" rel="noopener" href="http://mccormickml.com/2017/01/11/word2vec-tutorial-part-2-negative-sampling/"
-class="uri">http://mccormickml.com/2017/01/11/word2vec-tutorial-part-2-negative-sampling/</a></p></li>
-<li><p><a
-target="_blank" rel="noopener" href="http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/"
-class="uri">http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/114538417" class="uri">https://zhuanlan.zhihu.com/p/114538417</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="http://demo.clab.cs.cmu.edu/cdyer/nce_notes.pdf" class="uri">http://demo.clab.cs.cmu.edu/cdyer/nce_notes.pdf</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/261694402" class="uri">https://zhuanlan.zhihu.com/p/261694402</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/51099880" class="uri">https://zhuanlan.zhihu.com/p/51099880</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/261694402" class="uri">https://zhuanlan.zhihu.com/p/261694402</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="http://mccormickml.com/2017/01/11/word2vec-tutorial-part-2-negative-sampling/" class="uri">http://mccormickml.com/2017/01/11/word2vec-tutorial-part-2-negative-sampling/</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/" class="uri">http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/</a></p></li>
 </ol>
 
     </div>
