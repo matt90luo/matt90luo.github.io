@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
+  </script>
+
+  <meta name="description" content="协同过滤在整个推荐系统的发展历史上具有重要地位 本文介绍了在分布式环境下如何利用协同过滤的思想进行推荐, 协同思想在推荐系统中会反复使用, 工程上实现简单, 业务可解释性强。协同过滤大体上分为基于用户(user-based)的协同过滤算法和基于商品(item-based)的协同过滤算法。 两种算法在具体实现上没有过多区别。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="推荐系统-协同过滤">
+<meta property="og:url" content="https://matt90luo.github.io/2020/03/08/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/index.html">
+<meta property="og:site_name" content="ukiml的博客">
+<meta property="og:description" content="协同过滤在整个推荐系统的发展历史上具有重要地位 本文介绍了在分布式环境下如何利用协同过滤的思想进行推荐, 协同思想在推荐系统中会反复使用, 工程上实现简单, 业务可解释性强。协同过滤大体上分为基于用户(user-based)的协同过滤算法和基于商品(item-based)的协同过滤算法。 两种算法在具体实现上没有过多区别。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-08T07:08:20.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:11:18.538Z">
+<meta property="article:author" content="ukiml">
+<meta property="article:tag" content="机器学习">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://matt90luo.github.io/2020/03/08/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>推荐系统-协同过滤 | ukiml的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ukiml的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/03/08/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F-%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          推荐系统-协同过滤
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-08 15:08:20" itemprop="dateCreated datePublished" datetime="2020-03-08T15:08:20+08:00">2020-03-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>协同过滤在整个推荐系统的发展历史上具有重要地位
+本文介绍了在分布式环境下如何利用协同过滤的思想进行推荐,
+协同思想在推荐系统中会反复使用, 工程上实现简单,
+业务可解释性强。协同过滤大体上分为基于用户(user-based)的协同过滤算法和基于商品(item-based)的协同过滤算法。
+两种算法在具体实现上没有过多区别。 <span id="more"></span></p>
+<p>user-based算法主要步骤:</p>
+<ol type="1">
+<li>找到和目标用户相似的用户集合</li>
+<li>找到这个集合中的用户喜欢的,
+并且目标用户没有听说过的物品推荐给目标用户</li>
+</ol>
+<p>item-based算法主要步骤:</p>
+<ol type="1">
+<li>计算物品之间的相似度</li>
+<li>根据物品的相似度和目标用户的历史行为生成推荐列表</li>
+</ol>
+<h2 id="稀疏矩阵表示用户商品交互">稀疏矩阵表示用户商品交互</h2>
+<p>如果用户对于商品的交互信息用一个矩阵来表示, 毫无疑问这是一个稀疏矩阵,
+在实际业务场景中会存在大量的缺失值,
+如何猜出这些缺失值并且有效推荐给用户? 我们采用隐式反馈模型来考量,
+某个用户对某一商品有交互有偏好,
+那么值为1否则为0。在预测用户行为（隐式反馈）时，大部分只有用户正向选择行为的记录（正样本），这类问题即为One
+Class
+问题，即单类问题。例如我们用0-1矩阵来表示这类问题，1的解释即为用户喜欢该物品，但是0却有两种原因来解释：一是用户没有看到该物品，但是用户喜欢；二是用户已经浏览过了但是不感兴趣。当我们使用协同过滤算法时,
+解决0的办法就是通过相似性.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>隐式反馈</th>
+<th>显示反馈</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>准确度</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr class="even">
+<td>丰富度</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr class="odd">
+<td>获取难度</td>
+<td>容易</td>
+<td>困难</td>
+</tr>
+<tr class="even">
+<td>数据噪音</td>
+<td>较难识别</td>
+<td>较易识别</td>
+</tr>
+<tr class="odd">
+<td>上下文敏感</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr class="even">
+<td>用户偏好的表达能力</td>
+<td>只有正样本</td>
+<td>包含正负样本</td>
+</tr>
+<tr class="odd">
+<td>评估比较标准</td>
+<td>相对比较</td>
+<td>绝对比较</td>
+</tr>
+</tbody>
+</table>
+<h2 id="计算相似度">计算相似度</h2>
+<p>我们以item-based为例 两个物品的相似度可以表v示为 <span
+class="math display">\[w_{i,j} = \frac{\left| N(i) \bigcap N(j) \right|
+}{\sqrt{\left|N(i)\right|\left|N(j)\right|}} \tag{1}\]</span></p>
+<p><span
+class="math inline">\(N(i)\)</span>是喜欢物品i的用户数在协同过滤中两个物品产生相似度是因为它们共同被喜欢，每一个用户都通过历史兴趣列表给物品”贡献“
+相似度。这其中蕴含着一种假设，每一个用户的兴趣都局限在某几个方面，因此如果两个物品属于一个用户的兴趣列表，那么这两个物品可能就属于有限的几个领域，而如果两个物品属于很多用户的兴趣列表，那么他们可能属于同一个领域,
+因而有很大的相似度</p>
+<p>上面的相似度公式在实际使用中还有改进的地方,
+上文中说到每个用户的兴趣列表都对物品的相似度产生贡献,
+但是不是每一个用户的贡献都相同。对于特别活跃的用户(比如某用户的兴趣列表长达几十万),
+这类用户对于物品之间的贡献度应该小,
+即活跃用户对物品的相似度贡献应该小于不活跃的用户, 使用一个IUF(Inverse
+User Frequence)参数来修正公式</p>
+<p><span class="math display">\[  w_{ij}= \frac{\sum_{u\in N(i) \bigcap
+N(j)}\frac{1}{\log{(1 + \left| N(u) \right|)}} }{\sqrt{\left| N(i)
+\right| \left| N(j) \right|}}  \tag{2}\]</span></p>
+<p>我们看到分子相比较上面的公式,
+不再是简单的相加而是带有了一个iuf的系数,
+我们还可以进一步将时间上下文考虑进去。我们有一个假设用户在相隔很短的时间内喜欢的物品具有更高的相似度,
+如果用户对物品i和物品j产生行为的时间越远物品和物品j的相似度就不大,
+据此我们得到如下的相似度公式 <span class="math display">\[ w_{ij}=
+\frac{\sum_{u\in N(i) \bigcap N(j)}\frac{1}{\log{(1 + \left| N(u)
+\right|)}} \frac{1}{1 + \alpha \left| t_{ui} - t_{uj} \right|}
+}{\sqrt{\left| N(i) \right| \left| N(j) \right|}} \tag{3} \]</span></p>
+<p>其中<span class="math inline">\(\alpha\)</span>是时间衰减参数,
+如果一个系统用户兴趣变化很快, 取较大的<span
+class="math inline">\(\alpha\)</span>，反之取较小的<span
+class="math inline">\(\alpha\)</span></p>
+<h3 id="利用spark计算item相似度">利用spark计算item相似度</h3>
+<p>可以利用spark计算两个稀疏矩阵的乘法具体的原理见<a
+target="_blank" rel="noopener" href="http://hejunhao.me/archives/1503">文章</a>,以下是核心代码:
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * @param spark: sparkSession</span></span><br><span class="line"><span class="comment">    * @param user_item: userID,itemID,(Interaction, interactionTime)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">itemCF</span></span>(spark: <span class="type">SparkSession</span>, user_item: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">Int</span>, (<span class="type">Double</span>, <span class="type">Double</span>))]) = &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> item_user = user_item.map(x =&gt; (x._2, x._1, x._3))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> useriuf = user_item.map(x =&gt; (x._1, x._2)).aggregateByKey(<span class="number">0</span>)((z, b) =&gt; z + <span class="number">1</span>, _ + _) <span class="comment">// userIDx, list(itemIdx)</span></span><br><span class="line">      .map(x =&gt; (x._1, <span class="number">1</span> / <span class="type">Math</span>.log(<span class="number">1</span> + x._2))) <span class="comment">// user对应的IUF系数</span></span><br><span class="line">      .collectAsMap()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;useriuf size &quot;</span>, useriuf.size)</span><br><span class="line">    <span class="keyword">val</span> bruseriuf = spark.sparkContext.broadcast(useriuf)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> lm = item_user.map(x =&gt; (x._2, (x._1, x._2, x._3))).partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>)) <span class="comment">//&quot;l_row&quot;, &quot;l_column&quot;, &quot;l_val&quot;</span></span><br><span class="line">    <span class="keyword">val</span> rm = user_item.map(x =&gt; (x._1, (x._1, x._2, x._3))).partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>)) <span class="comment">//&quot;r_row&quot;, &quot;r_column&quot;, &quot;r_val&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> numerator = lm.join(rm)</span><br><span class="line">      .map(x =&gt; ((x._2._1._1, x._2._2._2), x._1, <span class="number">1</span>/(<span class="number">1</span> + <span class="type">TIME_DECAY_ALPHA</span> * math.abs(x._2._1._3._2 - x._2._2._3._2)/<span class="type">HOURSECONDS</span>)))  <span class="comment">// 这里拿到用户 以及用户访问两个item的时间差</span></span><br><span class="line">      .map(x =&gt; (x._1, bruseriuf.value.getOrElse(x._2, <span class="number">0.0</span>) * x._3))</span><br><span class="line">      .partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>))</span><br><span class="line">      .aggregateByKey(<span class="number">0.0</span>)(_ + _, _ + _)</span><br><span class="line">      .filter(x =&gt; x._1._1 &gt;= x._1._2) <span class="comment">//Gram矩阵 主对角线对称 取下对角</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> itemMatrix = sparseMatrixMultiple(spark, item_user.map(x=&gt;(x._1,x._2, x._3._1)), user_item.map(x=&gt;(x._1, x._2, x._3._1))).map(x =&gt; (x._1._1, x._1._2, x._2)).cache()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> diagonal = itemMatrix.filter(x =&gt; x._1 == x._2).map(x =&gt; (x._1, x._3)).collectAsMap()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> brdiagonal = spark.sparkContext.broadcast(diagonal) <span class="comment">//每个商品对应的交互用户</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> rs = itemMatrix.filter(x =&gt; x._1 &gt;= x._2).map(x =&gt; &#123;</span><br><span class="line">      <span class="keyword">val</span> i = brdiagonal.value(x._1)</span><br><span class="line">      <span class="keyword">val</span> j = brdiagonal.value(x._2)</span><br><span class="line">      ((x._1, x._2), <span class="type">Math</span>.sqrt(i * j))</span><br><span class="line">    &#125;)</span><br><span class="line">      .partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>))</span><br><span class="line">      .join(numerator)</span><br><span class="line"></span><br><span class="line">    itemMatrix.unpersist()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> res = rs.map(x =&gt; (x._1._1, x._1._2, x._2._2 / x._2._1))</span><br><span class="line">      .flatMap(x =&gt; <span class="keyword">if</span> (x._1 != x._2) <span class="type">Array</span>((x._1, x._2, x._3), (x._2, x._1, x._3)) <span class="keyword">else</span> <span class="type">Array</span>((x._1, x._2, x._3)))<span class="comment">//需要把矩阵展开</span></span><br><span class="line">    res</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * rdd 稀疏矩阵相乘</span></span><br><span class="line"><span class="comment">    * @param spark sparkSession</span></span><br><span class="line"><span class="comment">    * @param l 左矩阵</span></span><br><span class="line"><span class="comment">    * @param r 右矩阵</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">sparseMatrixMultiple</span></span>(spark: <span class="type">SparkSession</span>, l: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">Int</span>, <span class="type">Double</span>)], r: <span class="type">RDD</span>[(<span class="type">Int</span>, <span class="type">Int</span>, <span class="type">Double</span>)]) = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> lm = l.map(x =&gt; (x._2, (x._1, x._2, x._3))).partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>)) <span class="comment">//&quot;l_row&quot;, &quot;l_column&quot;, &quot;l_val&quot;</span></span><br><span class="line">    <span class="keyword">val</span> rm = r.map(x =&gt; (x._1, (x._1, x._2, x._3))).partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>)) <span class="comment">//&quot;r_row&quot;, &quot;r_column&quot;, &quot;r_val&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> f = lm.join(rm) <span class="comment">// l_column = r_row</span></span><br><span class="line">      .map(x =&gt; ((x._2._1._1, x._2._2._2), x._2._1._3 * x._2._2._3))</span><br><span class="line">      .partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">500</span>))</span><br><span class="line">      .aggregateByKey(<span class="number">0.0</span>)(_ + _, _ + _)</span><br><span class="line">    f</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>使用隐式反馈模型, 用户商品交互数据用一个稀疏矩阵表示</p></li>
+<li><p>如何计算每个item有多少user交互以及item两两之间有多少相同user交互?
+对于这部分计算是可以等价成两个矩阵相乘,
+假设矩阵X是用坐标表示的稀疏矩阵(i, j, v) i是item对应id， j是user对应id,
+那么<span class="math inline">\(XX^T\)</span>中,
+主对角线的每个元素就是对应item所有交互的user数,
+其它元素是两两item之间共同的交互用户数</p></li>
+<li><p><span class="math inline">\(XX^T\)</span> 是一个Gram对称矩阵,
+可以适当减少计算量加快计算速度</p></li>
+</ul>
+<h2 id="使用item相似度">使用item相似度</h2>
+<p>我们需要取item相似的前topK数据 <figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> itemSimRDD = itemSim.filter(x =&gt; x._1 != x._2)</span><br><span class="line">                  .map(x =&gt; (x._1, (x._2, x._3)))</span><br><span class="line">                  .topByKey(<span class="number">500</span>)(<span class="type">Ordering</span>.by[(<span class="type">Int</span>, <span class="type">Double</span>), <span class="type">Double</span>](_._2))</span><br><span class="line">                  <span class="comment">//进行归一化操作</span></span><br><span class="line">                  .map(x =&gt; &#123;</span><br><span class="line">                    <span class="keyword">val</span> max = x._2.head</span><br><span class="line">                        (x._1, x._2.map(t =&gt; (t._1, t._2 / max._2)))</span><br><span class="line">                  &#125;)</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>计算item相似度的topK可以使用spark提供的topByKey功能,
+然后做归一化操作, 归一化以后可以增加推荐的准确度和推荐的覆盖度</li>
+</ul>
+<h2 id="根据item相似度推荐">根据item相似度推荐</h2>
+<p>一般来说用户现在的行为和用户最近的行为关系更大</p>
+<p><span class="math display">\[p(u, i) = \sum_{j \in N(u) \bigcap S(i,
+k)} sim(i, j)\frac{1}{1 + \beta\left| t_0 - t_{uj} \right|} \tag{4}
+\]</span> 这里<span
+class="math inline">\(N(u)\)</span>是用户交互的物品集合, <span
+class="math inline">\(S(i, k)\)</span> 是和物品i最相似的topK物品, <span
+class="math inline">\(sim(i, j)\)</span>是物品i和j的相似度</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * @param spark: sparkSession</span></span><br><span class="line"><span class="comment">    * @param interactRDD:  user, item, timeStamp</span></span><br><span class="line"><span class="comment">    * @param simItem: item-&gt;Array(item, simscore)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">prediction</span></span>(spark:<span class="type">SparkSession</span>, interactRDD:<span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">String</span>, <span class="type">Double</span>)],</span><br><span class="line">                 simItem: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">Array</span>[(<span class="type">String</span>, <span class="type">Double</span>)]]) =&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> brsimItem = spark.sparkContext.broadcast(simItem)</span><br><span class="line">    <span class="keyword">val</span> currentSec = (<span class="type">System</span>.currentTimeMillis()/<span class="number">1000</span>).toDouble</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> pred = interactRDD.map(x =&gt; (x._1, (x._2, x._3)))</span><br><span class="line">      .aggregateByKey(<span class="type">Array</span>.empty[(<span class="type">String</span>, <span class="type">Double</span>)])(_:+_, _++_)</span><br><span class="line">      .map(x=&gt; (x._1, x._2.toMap))</span><br><span class="line">      .map&#123;x =&gt;</span><br><span class="line">       <span class="keyword">val</span> predItem =  brsimItem.value.mapValues&#123; y =&gt;</span><br><span class="line">          y.map&#123;t =&gt;</span><br><span class="line">            <span class="keyword">if</span>(x._2.isDefinedAt(t._1))</span><br><span class="line">              <span class="number">1</span>/(<span class="number">1</span> + <span class="type">TIME_DECAY_BETA</span> * math.abs(currentSec - x._2.get(t._1).get) / <span class="type">HOURSECONDS</span>) * t._2</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">              <span class="number">0.0</span></span><br><span class="line">          &#125;.sum</span><br><span class="line">        &#125;.toList.sortBy(_._2)(<span class="type">Ordering</span>.<span class="type">Double</span>.reverse).take(<span class="number">500</span>)</span><br><span class="line"></span><br><span class="line">        (x._1, predItem)</span><br><span class="line">      &#125;</span><br><span class="line">    pred</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>物品相似度矩阵存储每个item最相思的topK商品,
+使用这个相似度矩阵的核心思想是: 和用户历史上感兴趣的物品越相似的物品，,
+越有可能在用户的推荐列表中获得比较高的排名</li>
+<li>在spark中计算如果广播量太大可以切分成较小的部分, 分批计算</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * @param spark  sparkSession</span></span><br><span class="line"><span class="comment">    * @param interactRDD  user, item, timeStamp</span></span><br><span class="line"><span class="comment">    * @param simItem  item-&gt;Array(item, simscore)</span></span><br><span class="line"><span class="comment">    * @return</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">prediction2</span></span>(spark:<span class="type">SparkSession</span>, interactRDD:<span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">String</span>, <span class="type">Double</span>)],</span><br><span class="line">                  simItem: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Array</span>[(<span class="type">String</span>, <span class="type">Double</span>)])]) =&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> currentSec = (<span class="type">System</span>.currentTimeMillis()/<span class="number">1000</span>).toDouble</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> simItemAsIterator = simItem.repartition(<span class="number">10</span>).mapPartitions&#123;it =&gt;</span><br><span class="line">      <span class="type">Iterator</span>.single(it.toMap)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    interactRDD.cache()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">val</span> prediction = (<span class="keyword">for</span>( itemSim &lt;- simItemAsIterator.toLocalIterator) <span class="keyword">yield</span> &#123;</span><br><span class="line">       <span class="keyword">val</span> brsimItem = spark.sparkContext.broadcast(itemSim)</span><br><span class="line">       <span class="keyword">val</span> pred = interactRDD.map(x =&gt; (x._1, (x._2, x._3)))</span><br><span class="line">         .aggregateByKey(<span class="type">Array</span>.empty[(<span class="type">String</span>, <span class="type">Double</span>)])(_:+_, _++_)</span><br><span class="line">         .map(x=&gt; (x._1, x._2.toMap))</span><br><span class="line">         .map&#123;x =&gt;</span><br><span class="line">           <span class="keyword">val</span> predItem =  brsimItem.value.mapValues&#123; y =&gt;</span><br><span class="line">             y.map&#123;t =&gt;</span><br><span class="line">               <span class="keyword">if</span>(x._2.isDefinedAt(t._1))</span><br><span class="line">                 <span class="number">1</span>/(<span class="number">1</span> + <span class="type">TIME_DECAY_BETA</span> * math.abs(currentSec - x._2.get(t._1).get) / <span class="type">HOURSECONDS</span>) * t._2</span><br><span class="line">               <span class="keyword">else</span></span><br><span class="line">                 <span class="number">0.0</span></span><br><span class="line">             &#125;.sum</span><br><span class="line">           &#125;.toList.sortBy(_._2)(<span class="type">Ordering</span>.<span class="type">Double</span>.reverse).take(<span class="number">500</span>)</span><br><span class="line"></span><br><span class="line">           (x._1, predItem)</span><br><span class="line">         &#125;</span><br><span class="line">       pred</span><br><span class="line">     &#125;).reduce(_ ++ _).reduceByKey(_ ++ _)</span><br><span class="line">      .map(x=&gt;(x._1, x._2.sortBy(_._2)(<span class="type">Ordering</span>.<span class="type">Double</span>.reverse).take(<span class="number">500</span>)))</span><br><span class="line">    interactRDD.unpersist()</span><br><span class="line">    prediction</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="usercf和itemcf对比">userCF和itemCF对比</h2>
+<p>摘自<a
+target="_blank" rel="noopener" href="http://www.xwood.net/_site_domain_/_root/5870/5930/5932/t_c264767.html">推荐系统与实战</a></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>userCF</th>
+<th>itemCF</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>性能</td>
+<td>适用用户较少场景, 用户较大场景下计算用户相似度矩阵代价较大</td>
+<td>适用用户数明显小于用户数的场景</td>
+</tr>
+<tr class="even">
+<td>领域</td>
+<td>适用时效性强, 用户个性化兴趣不太明显的领域</td>
+<td>长尾物品丰富，用户个性化需求强烈的领域</td>
+</tr>
+<tr class="odd">
+<td>实时性</td>
+<td>在用户有新行为是, userCF不会造成推荐结果的立即变化</td>
+<td>用户有新行为 itemCF一定会导致推荐结果的实时变化</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag"># 机器学习</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/09/hexo-next%E5%88%B6%E4%BD%9C%E5%8D%9A%E5%AE%A2/" rel="next" title="hexo+next制作博客">
+      hexo+next制作博客 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%80%E7%96%8F%E7%9F%A9%E9%98%B5%E8%A1%A8%E7%A4%BA%E7%94%A8%E6%88%B7%E5%95%86%E5%93%81%E4%BA%A4%E4%BA%92"><span class="nav-number">1.</span> <span class="nav-text">稀疏矩阵表示用户商品交互</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E7%9B%B8%E4%BC%BC%E5%BA%A6"><span class="nav-number">2.</span> <span class="nav-text">计算相似度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8spark%E8%AE%A1%E7%AE%97item%E7%9B%B8%E4%BC%BC%E5%BA%A6"><span class="nav-number">2.1.</span> <span class="nav-text">利用spark计算item相似度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8item%E7%9B%B8%E4%BC%BC%E5%BA%A6"><span class="nav-number">3.</span> <span class="nav-text">使用item相似度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B9%E6%8D%AEitem%E7%9B%B8%E4%BC%BC%E5%BA%A6%E6%8E%A8%E8%8D%90"><span class="nav-number">4.</span> <span class="nav-text">根据item相似度推荐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#usercf%E5%92%8Citemcf%E5%AF%B9%E6%AF%94"><span class="nav-number">5.</span> <span class="nav-text">userCF和itemCF对比</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ukiml</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ukiml</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">147k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:14</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5b91b1ad9dd50225f33e',
+      clientSecret: '19f46a8f45a6d87bb1bda4ad724df3e37d557201',
+      repo        : 'matt90luo.github.io',
+      owner       : 'matt90luo',
+      admin       : ['matt90luo'],
+      id          : 'cd81bf2addcea48b3906431cccabf55e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

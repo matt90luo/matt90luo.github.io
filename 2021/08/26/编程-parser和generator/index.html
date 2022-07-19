@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
+  </script>
+
+  <meta name="description" content="最近在有关NLP相关的内容，不知怎的居然逐渐投入到计算机语言的研究去了，特别是编译原理。看来自然语言和计算机语言也是有某种互通吧。看的东西很多也很杂。感觉好多知识都是似曾相识。不管怎样，先写一篇博客，稍稍记录一下我的学习成果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编程-parser和generator">
+<meta property="og:url" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/index.html">
+<meta property="og:site_name" content="ukiml的博客">
+<meta property="og:description" content="最近在有关NLP相关的内容，不知怎的居然逐渐投入到计算机语言的研究去了，特别是编译原理。看来自然语言和计算机语言也是有某种互通吧。看的东西很多也很杂。感觉好多知识都是似曾相识。不管怎样，先写一篇博客，稍稍记录一下我的学习成果。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/alphabetproduct.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/derivation.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/Nderive.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/derivereduce.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/2derive.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/phrase.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/sen.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/sens.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/L.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/Lcompute.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/type0.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/type1.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/type2.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/type3.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/typeRelation.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/cfg.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/cfgderive.png">
+<meta property="og:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/ambiguity.png">
+<meta property="article:published_time" content="2021-08-26T03:20:13.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:11:18.549Z">
+<meta property="article:author" content="ukiml">
+<meta property="article:tag" content="编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/alphabetproduct.png">
+
+<link rel="canonical" href="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>编程-parser和generator | ukiml的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ukiml的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          编程-parser和generator
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-26 11:20:13" itemprop="dateCreated datePublished" datetime="2021-08-26T11:20:13+08:00">2021-08-26</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近在有关NLP相关的内容，不知怎的居然逐渐投入到计算机语言的研究去了，特别是编译原理。看来自然语言和计算机语言也是有某种互通吧。看的东西很多也很杂。感觉好多知识都是似曾相识。不管怎样，先写一篇博客，稍稍记录一下我的学习成果。</p>
+<span id="more"></span>
+<h2 id="parser是什么">parser是什么</h2>
+<p>从某种程度上来说，parser并不难。从整个编译技术栈来看，parser的地位非常靠前，它的结果很重要，难度却并不高。所谓
+parser，一般是指把某种格式的文本（字符串）转换成某种数据结构的过程。最常见的
+parser，是把程序文本转换成编译器内部的一种叫做“抽象语法树”（AST）的数据结构。也有简单一些的
+parser，用于处理 CSV，JSON，XML 之类的格式。</p>
+<h2 id="语言">语言</h2>
+<p>在讲语言之前，我们先引入下面两个概念:</p>
+<ol type="1">
+<li><p>字母表 字母表我们用<span
+class="math inline">\(\Sigma\)</span>表示，是一个有穷的字符集合。比如对于英语，是一个26个字母(假设不分大小写)组成的字母表。又比如计算机常见的ASCII字符集。</p></li>
+<li><p>符号串 由字母表中的符号组成的任何有穷序列称为符号串。串 s
+的长度，通常记作 |s| ，是指 s 中符号的个数。例：|aab|=3。 空串是长度为 0
+的串，用<span class="math inline">\(\epsilon\)</span> 表示，<span
+class="math inline">\(|\epsilon|=0\)</span>。</p></li>
+</ol>
+<p>大体上语言可以分为形式语言和自然语言，在这篇文章中出现的语言都是指形式语言。形式语言（Formal
+Language）是为了特定应用而人为设计的语言。例如数学家用的数字和运算符号、化学家用的分子式等。编程语言也是一种形式语言，是专门设计用来表达计算过程的形式语言。</p>
+<p>从字面上看，每个程序都是一个“基本符号”串，设有一基本符号串，那么编程语言可看成是在这个基本符号集上定义的，按一定规则构成的一切基本符号串组成的集合。</p>
+<p>字母表相关的运算:</p>
+<ul>
+<li><p>字母表与字母表的乘积 <img src="alphabetproduct.png" /></p></li>
+<li><p>字母表的n次幂: 长度为n的符号串构成的集合 <img
+src="alphabetNpower.png" /></p></li>
+<li><p>字母表的正闭包：长度正数的符号串构成的集合 <img
+src="alphabetPositiveClosure.png" /></p></li>
+<li><p>字母表的克林闭包：任意符号串（长度可以为零）构成的集合 <img
+src="alphabetKleeneClosure.png" /></p></li>
+<li><p>串的幂运算：将 n 个 串连接起来。 <img
+src="strPower.png" /></p></li>
+</ul>
+<h2 id="文法语法grammer">文法(语法)Grammer</h2>
+<p>文法是台湾地区的习惯用法。</p>
+<h3 id="语法的形式化定义">语法的形式化定义</h3>
+<p><span class="math inline">\(G=(V_T,V_N,P,S)\)</span></p>
+<ul>
+<li>G表示文法，文法由一个四元组定义</li>
+<li><span class="math inline">\(V_T\)</span>: 终结符集合
+<ul>
+<li>终结符(terminal
+symbol)是文法所定义的语言的基本符号，有时也称为token。</li>
+<li>例如：<span class="math inline">\(V_T = \{ a p p l e , b o y , e a t
+, l i t t l e \}\)</span> ​</li>
+</ul></li>
+<li><span class="math inline">\(V_N\)</span>：非终结符集合
+<ul>
+<li>非终结符(nonterminal)
+是用来表示语法成分的符号，有时也称为“语法变量</li>
+<li>例如 <span class="math inline">\(V_N
+=\{&lt;句子&gt;,&lt;名词短语&gt;,&lt;动词短语&gt;,&lt;名词&gt;,…\}\)</span></li>
+<li>因为从它们可以推出其他的语法成分，所以被称为非终结符</li>
+</ul></li>
+<li>终结符集合和非终结符集合都是字母表</li>
+<li>终结符集合与非终结符集合是不相交的，<span class="math inline">\(V_T
+\bigcap V_N = \phi\)</span></li>
+<li>而终结符集合与非终结符集合的并集是文法符号集，<span
+class="math inline">\(V_T \bigcup V_N\)</span>: 文法符号集 ​</li>
+<li>P：产生式集合，产生式描述了将终结符和非终结符组合成串的方法。
+<ul>
+<li>产生式的一般形式：<span class="math inline">\(\alpha
+\rightarrow{\beta}\)</span></li>
+<li>读作：<span class="math inline">\(\alpha\)</span> 定义为 <span
+class="math inline">\(\beta\)</span></li>
+<li><span class="math inline">\(\alpha \in (V_T \cup V_N)^+\)</span>且
+<span class="math inline">\(\alpha\)</span>中至少包含<span
+class="math inline">\(V_N\)</span>中的一个元素：称为产生式的头(head)或左部(left
+side)。</li>
+<li><span class="math inline">\(\beta \in (V_T \cup V_N)^*\)</span> :
+称为产生式的体（body）或者右部（right side）</li>
+</ul></li>
+<li><span class="math inline">\(S \in V_N\)</span>
+开始符号表示的是该文法中最大的语法成分。
+<ul>
+<li>例如：S=<句子></li>
+</ul></li>
+<li>a对一组有相同左部的<span
+class="math inline">\(\alpha\)</span>产生式，<span
+class="math inline">\(\alpha \rightarrow \beta_1,\alpha \rightarrow
+\beta_2 .... \alpha \rightarrow \beta_n\)</span> 可以简记 <span
+class="math inline">\(\alpha \rightarrow \beta_1 | \beta_2
+|...|\beta_n\)</span>, <span class="math inline">\(\beta_1, \beta_2 ...
+\beta_n\)</span> 被称作<span
+class="math inline">\(\alpha\)</span>的候选式</li>
+</ul>
+<h3 id="符号约定">符号约定</h3>
+<ul>
+<li>下列符号是终结符
+<ul>
+<li>字母表中排在前面的小写字母，如a、b、c</li>
+<li>运算符，如+，*等</li>
+<li>标点符号，如逗号，括号等</li>
+<li>数字，0、1、2…、9</li>
+<li>粗体字符串，如id、if等</li>
+</ul></li>
+<li>下列符号是非终结符
+<ul>
+<li>字母表中排在前面的大写字母，如A、B、C</li>
+<li>字母S，通常表示开始符号</li>
+<li>小写、斜体的名字，如expr、stmt等</li>
+<li>代表程序构造的大写字母。如E（表达式）、T（项）和F（因子）</li>
+</ul></li>
+<li>字母表中排在后面的大写字母（如X、Y、Z）表示文法符号（即终结符或非终结符）</li>
+<li>字母表中排在后面的小写字母（主要是u、v、…、z）表示终结符号串（包括空串）</li>
+<li>小写希腊字母，如α 、β 、γ ，表示文法符号串（包括空串）</li>
+<li>如非特别说明，第一个产生式的左部就是开始符号</li>
+</ul>
+<h3 id="推导和规约">推导和规约</h3>
+<p>在编译原理的总结之中，我们知道一个句子可能存在多种推导方式，所以我们约定两种特殊的推导方式（顺序），即最左推导和最右推导。句子的推导是我们从开始符号，推出我们想要的句子的过程。与之相反，拿到一个句子，我们反推回开始符号，这个过程是句子的规约。因此，最左推导和最右推导分别对应最右规约和最左规约。上述概念的形式化定义如下</p>
+<ul>
+<li><p>最右推导（规范推导）： 对于直接推导 <span class="math inline">\(x
+\rightarrow
+y\)</span>，如果y只包含终结符号或者为空符号串（相当于右边已经没有可以被拆分的非终结符了），那么，就把这种直接推导称为规范推导。</p></li>
+<li><p>最左推导： 与最右推导相反。</p></li>
+<li><p>最左规约：
+为最右推导的逆过程，对于一个句子，每次都从最左端，可规约的符号或符号串（句柄）来规约。</p></li>
+</ul>
+<p><img src="derivation.png" /></p>
+<p><img src="Nderive.png" /></p>
+<p><img src="derivereduce.png" /></p>
+<p>对于所有合法的推导过程，都能通过语法树的形式进行表示（多对一）。例如给定文法:
+E::= E＋E|E * E|(E)|i，那么对于一个句子 S = i + i * i 存在不同的规范推导
+<img src="2derive.png" /></p>
+<h3 id="短语简单短语与句柄">短语、简单短语与句柄</h3>
+<p>给定一个句子S（如i+i *
+i），找到它的短语、简单短语与句柄主要依靠其语法树。其中短语是语法树子树的所有叶节点组成的符号串，也就是说有多少个子树，就有多少个短语。简单短语是语法树简单子（高度为2）的所有叶节点组成的符号串。句柄是最左简单子树（高度为2）的所有叶节点组成的符号串。</p>
+<p>我们不妨看上图左边的语法树。对于句子i + i * i，短语有i+i * i, i, i *
+i。简单短语有i（三个），句柄为最左边的i</p>
+<p>所以短语 简单短语 句柄的定义如下</p>
+<ul>
+<li><p>短语：一个句型的语法树中任一子树的叶节点所组成的符号串都是该句型的短语</p></li>
+<li><p>简单短语:
+一个句型的语法树中任一最小子树的叶节点所组成的符号串都是该句型的短语</p></li>
+<li><p>句柄： 句柄是最左边的直接短语</p></li>
+</ul>
+<p>给定一个句型，其分析树中的每一颗子树的边缘称为该句型的一个短语。</p>
+<p>如果子树只有父子两代节点，那么这课子树的边缘称为该句型的一个直接短语。</p>
+<p><img src="phrase.png" /></p>
+<h3 id="句型和句子">句型和句子</h3>
+<p><img src="sen.png" /></p>
+<p><img src="sens.png" /></p>
+<h3 id="语言的形式化定义">语言的形式化定义</h3>
+<p><img src="L.png" /></p>
+<p><img src="Lcompute.png" /></p>
+<h2 id="文法分类">文法分类</h2>
+<h3 id="型文法无限制文法">0型文法，无限制文法</h3>
+<p><img src="type0.png" /></p>
+<h3 id="型文法上下文有关文法">1型文法，上下文有关文法</h3>
+<p><img src="type1.png" /></p>
+<h3 id="型文法上下文无关文法">2型文法，上下文无关文法</h3>
+<p><img src="type2.png" /></p>
+<h3 id="型文法正则文法">3型文法，正则文法</h3>
+<p><img src="type3.png" /></p>
+<h3 id="种文法总结">4种文法总结</h3>
+<ol type="1">
+<li><p>0型文法 限制最少，其实就是，<span
+class="math inline">\(\rightarrow\)</span>的左边，是非终结符和终结符的组合，由于终结符是有<span
+class="math inline">\(\epsilon\)</span>这个空存在的，所以，这就相当于只要有一个非终结符，其他怎么样都行。<span
+class="math inline">\(rightarrow\)</span>的右边，没有任何限制。</p></li>
+<li><p>1型文法 1型加的限制就是，对任一产生式<span
+class="math inline">\(\alpha \rightarrow \beta\)</span>，都有<span
+class="math inline">\(|\beta| &gt;= |\alpha|\)</span>， 仅仅 <span
+class="math inline">\(S \rightarrow \epsilon\)</span>
+除外，其生成式的一般表达式应该为：α1Aα2→α1βα2，A在终结符集合中，剩下的符号都是任意的（终结符和非终结符的集合）举个例子来说明：</p>
+<pre><code> A→aB
+
+ S→abc
+
+ bB→bc
+
+ aB→bB</code></pre></li>
+</ol>
+<p>我们在上述例子的第一个规则中A→aB中，想把B给替换掉，但是我们发现，没有B→这样的规则，然而，聪明的我们又发现，有aB→这样的式子，所以我们就把aB替换成了bB，然后bB又可以替换成bc。
+这其实就表达了这样一个意思，我要换这个B啊，必须得和他周围的东西一起换掉，就好像超市，B单独一个东西卖不出去，只有打包才行，所以，1型文法又称为上下文有关文法。</p>
+<ol start="3" type="1">
+<li><p>2型文法
+2型文法的限制就是，→的左边，都只能存在一个非终结符，那种AA，aB，aBc之类的就不能存在了，左边必须单身狗，→的右边依旧很自由，什么都可以（终结符和非终结符的集合）
+比如： A→aB</p>
+<pre><code> S→bAA
+
+ B→a
+
+ C→abA</code></pre></li>
+</ol>
+<p>大家会发现，当我要在A→aB中，把B替换掉的时候，由于存在B→a，所以直接就可以替换掉B，而不用在乎A→aB这个式子的B的旁边有没有别的东西，所以，2型文法又叫做上下文无关文法。</p>
+<ol start="4" type="1">
+<li><p>3型文法
+又称为正规文法，它的限制可就十分之死板了，它只允许两种形式的产生式存在，一个是A→aB，一个是A向右a，A和B都是非终结符，a则是终结符。举个例子：
+S→aA</p>
+<pre><code> S→a
+
+ A→bB
+
+ A→b</code></pre></li>
+</ol>
+<p>反正就是只有两种格式(左线性文法
+右线性文法)的式子允许存在，所以正规文法其实是很少的。</p>
+<h3 id="种文法关系">4种文法关系</h3>
+<p><img src="typeRelation.png" /></p>
+<p><img src="cfg.png" /></p>
+<p>分析树是推导的图形化表示</p>
+<p><img src="cfgderive.png" /></p>
+<h2 id="二义性文法">二义性文法</h2>
+<p>如果一个文法可以为某个句子生成多棵分析树，则称这个文法是二义性的。</p>
+<p><img src="ambiguity.png" /></p>
+<h3 id="二义性文法的判定">二义性文法的判定</h3>
+<p>对于任意一个上下文无关文法，不存在一个算法，判断它是无二义性的，但能给出一组充分条件，满足这组充分条件的文法是无二义性的。
+* 满足，肯定无二义性 * 不满足，也未必就是有二义性的</p>
+<h2 id="基于scala-parser-combinator实现parser">基于Scala parser
+combinator实现parser</h2>
+<h3 id="语法格式描述规范">语法格式描述规范</h3>
+<ul>
+<li><p>BNF
+是最原始，最简单的方法，主要用于理论背景的学术论文中，以与人类进行交流。（与在编译器/解析器中使用相反）。BNF
+没有确切的规范。</p></li>
+<li><p>EBNF 是 Extended BNF （扩展的BNF）的缩写。没有一个标准的
+EBNF，因为每个作者或程序都定义了自己的稍有不同的 EBNF 变体。</p></li>
+<li><p>ABNF 是 augmented BNF（增强型BNF）的缩写，ABNF 的语法 与 BNF
+完全不同，但是更加标准化，利于解析器的翻译，但不利于阅读；</p></li>
+</ul>
+<p>但是 BNF、EBNF、ABNF
+这三者的表达能力是等效的；它们只是语法上的差异。</p>
+<ul>
+<li><p>举例1：在传统的 BNF 中，左式 和 右式 的
+分隔符（即：定义符）通常是::=，而在书籍中通常是 →，在 EBNF 和 ABNF 中是
+=；</p></li>
+<li><p>举例2：在传统的 BNF
+中，非终结符用尖括号括起来，例如，<EXPR>终结符不用加任何额外的符号，用普通字符表示即可。而在
+ABNF 中，非终结符用普通字符表示，终结符需要用双引号括起来，例如"+"
+；</p></li>
+<li><p>举例3：在 BNF 和 EBNF 中，替代符号（选项符号）是 |，在 ABNF
+中，替代符号是 /；</p></li>
+<li><p>举例4：EBNF 和 ABNF 还具有快捷语法语法，比如指定 0个 或 多个
+重复项。要将其用 BNF 表示，则需要引入更多规则。</p></li>
+</ul>
+<h3 id="bnf规则">BNF规则</h3>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 30%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>符号</th>
+<th>含义</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>::=</td>
+<td>是“被定义为”的意思</td>
+<td>示例：字符串 ::= 用引号包围的字符序列，表示 字符串 就是
+用引号包围的字符序列 json ::= "{" [members] "}"</td>
+</tr>
+<tr class="even">
+<td>"..."</td>
+<td>终结符，即引号中的字符序列本身，并非指代其它字。而终结符双引号 " 用
+double_quote 用来表示</td>
+<td>示例：函数调用 ::= 名字 "()" 表示 函数的调用 是 由 名字
+加上左右括号字符 () 组成</td>
+</tr>
+<tr class="odd">
+<td>语法部分</td>
+<td></td>
+<td>示例：基本类型 ::= 字符串</td>
+</tr>
+<tr class="even">
+<td>&lt;...&gt;</td>
+<td>必选项</td>
+<td>示例：名字 ::= [姓] <名> 表示 名字 中的 名 是必须要有的，但 姓
+是可有可无的，即：姓 名 是 名字，名 也是 名字</td>
+</tr>
+<tr class="odd">
+<td>[...]</td>
+<td>可选，可有可无</td>
+<td>示例：名字 ::= [姓] <名> 表示 名字 中的 名 是必须要有的，但 姓
+是可有可无的，即：姓 名 是 名字，名 也是 名字</td>
+</tr>
+<tr class="even">
+<td>{...}</td>
+<td>重复，0 或 任意次重复</td>
+<td>示例：AB ::= "a" {"b"}，表示 AB 是由 一个 a
+后面跟上任意数量（包括0个）个 b 组成，如 a、a b、a bb、a bbb</td>
+</tr>
+<tr class="odd">
+<td>(...)</td>
+<td>分组，用来控制表达式的优先级</td>
+<td>示例：AX ::= "a" ("m"|"n")，表示 AX 是由 一个 a 后面跟上 m 或 n
+组成</td>
+</tr>
+<tr class="even">
+<td>|</td>
+<td>替换，即 或 的意思</td>
+<td>示例：布尔 ::= "true" | "false"，表示 true 或 false 都是 布尔</td>
+</tr>
+<tr class="odd">
+<td>...</td>
+<td>表示各种列举或省略的代码片断</td>
+<td>示例：a...z 表示 从 a 到 z 的字符，"..." 表示 由 双引号 "
+包围起来的任意字符</td>
+</tr>
+</tbody>
+</table>
+<p>基于BNF我们可以写出json的文法规则</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">json ::= <span class="string">&quot;&#123;&quot;</span> [members] <span class="string">&quot;&#125;&quot;</span></span><br><span class="line">array ::= <span class="string">&quot;[&quot;</span> [values] <span class="string">&quot;]&quot;</span></span><br><span class="line">members ::= member &#123;<span class="string">&quot;,&quot;</span> member&#125;</span><br><span class="line">member ::= stringLiteral <span class="string">&quot;:&quot;</span> value</span><br><span class="line">values ::= value &#123;<span class="string">&quot;,&quot;</span> value&#125;</span><br><span class="line">value ::= json | array | stringLiteral | floatingPointNumber |<span class="string">&quot;null&quot;</span> | <span class="string">&quot;true&quot;</span> | <span class="string">&quot;false&quot;</span></span><br></pre></td></tr></table></figure>
+<h3 id="ebnf">EBNF</h3>
+<p>用 EBNF范式 来描述 EBNF 的语法</p>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 46%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>符号</th>
+<th>含义</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>=</td>
+<td>定义</td>
+<td>示例：字符串 = 用引号包围的字符序列，表示 字符串 就是
+用引号包围的字符序列</td>
+</tr>
+<tr class="even">
+<td>,</td>
+<td>串接</td>
+<td>示例：张三= 'zhang', 'san' 表示 张三 是由 zhang 和 san 组成</td>
+</tr>
+<tr class="odd">
+<td>;</td>
+<td>终止，表示一个定义语句结束了，在没有歧义的情况下可省略</td>
+<td>示例：变量名字 = 标识符 ; 类型名字 = 标识符</td>
+</tr>
+<tr class="even">
+<td>|</td>
+<td>替换，即 或 的意思</td>
+<td>示例：布尔 = 'true'</td>
+</tr>
+<tr class="odd">
+<td>[...]</td>
+<td>可选，可有可无</td>
+<td>示例：名字 = [姓] 名 表示 名字 中的 姓 是可有可无的，即：姓 名 是
+名字，名 也是 名字；</td>
+</tr>
+<tr class="even">
+<td>{...}</td>
+<td>重复，0 或 任意次重复</td>
+<td>示例：AB = 'a' {'b'}，表示 AB 是由 一个 a
+后面跟上任意数量（包括0个）个 b 组成，如 a、a b、a bb、a bbb</td>
+</tr>
+<tr class="odd">
+<td>(...)</td>
+<td>分组，用来控制表达式的优先级</td>
+<td>示例：AX = 'a' ('m'|'n')，表示 AX 是由 一个 a 后面跟上 m 或 n
+组成</td>
+</tr>
+<tr class="even">
+<td>'...'</td>
+<td>终结符，即引号中的字符序列本身，并非指代其它字</td>
+<td>示例：函数调用 = 名字 '()' 表示 函数的调用 是 由 名字
+加上左右括号字符 () 组成</td>
+</tr>
+<tr class="odd">
+<td>"..."</td>
+<td>终结符</td>
+<td>同 '...'</td>
+</tr>
+<tr class="even">
+<td>(<em>...</em>)</td>
+<td>注释</td>
+<td>说明性文本，不表示任何语法</td>
+</tr>
+<tr class="odd">
+<td>?...?</td>
+<td>特殊序列</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>-</td>
+<td>排除</td>
+<td>除去</td>
+</tr>
+</tbody>
+</table>
+<p>EBNF语法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">生成式 = 生成式名 <span class="string">&#x27;=&#x27;</span> [ 表达式 ] [<span class="string">&#x27;;&#x27;</span>] ;</span><br><span class="line">表达式 = 选择项 &#123; <span class="string">&#x27;|&#x27;</span> 选择项 &#125; ;</span><br><span class="line">选择项 = 条目 &#123; 条目 &#125; ;</span><br><span class="line">条目   = 生成式名 | 标记 [ <span class="string">&#x27;…&#x27;</span> 标记 ] | 分组 | 可选项 | 重复项 ;</span><br><span class="line">分组   = <span class="string">&#x27;(&#x27;</span> 表达式 <span class="string">&#x27;)&#x27;</span> ;</span><br><span class="line">可选项 = <span class="string">&#x27;[&#x27;</span> 表达式 <span class="string">&#x27;]&#x27;</span> ;</span><br><span class="line">重复项 = <span class="string">&#x27;&#123;&#x27;</span> 表达式 <span class="string">&#x27;&#125;&#x27;</span> ;</span><br></pre></td></tr></table></figure>
+<p>生成式由表达式构造，表达式通过术语及以下操作符构造，自上而下优先级递增（低=&gt;高):</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">|   选择</span><br><span class="line">()  分组</span><br><span class="line">[]  可选（<span class="number">0</span> 或 <span class="number">1</span> 次）</span><br><span class="line">&#123;&#125;  重复（<span class="number">0</span> 到 n 次）</span><br></pre></td></tr></table></figure>
+<h3 id="增强型巴科斯范式abnf">增强型巴科斯范式ABNF</h3>
+<p>RFC2234 定义了增加型巴科斯范式(ABNF)。近年来在Internet的定义中 ABNF
+被广泛使用。ABNF
+做了更多的改进。增强型巴科斯-瑙尔范式(ABNF)基于了巴科斯-瑙尔范式(BNF)，但由它自己的语法和推导规则构成。这种元语言的发起原则是描述作为通信协议(双向规范)的语言的形式系统。它建档于
+RFC 4234 中通常充当 IETF 通信协议的定义语言。</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 33%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>符号</th>
+<th>含义</th>
+<th>事例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>=</td>
+<td>规则 = 定义</td>
+<td></td>
+</tr>
+<tr class="even">
+<td></td>
+<td>空白被用来分隔定义的各个元素
+要使空格被识别为分割符则必须明确的包含它。</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>规则1 规则2</td>
+<td>串联 规则可以通过列出一序列的规则名字来定义。</td>
+<td>fu = %x61; a <br> bar = %x62; b <br> mumble = fu bar fu</td>
+</tr>
+<tr class="even">
+<td>/</td>
+<td>选择 规则1 / 规则2</td>
+<td>fubar = fu / bar</td>
+</tr>
+<tr class="odd">
+<td>规则1 =/ 规则2</td>
+<td>递增选择
+可以通过使用在规则名字和定义之间的“=/”来向一个规则增加补充选择。</td>
+<td>ruleset = alt1 / alt2 / alt3 / alt4 / alt5 等价于 <br> ruleset =
+alt1 / alt2<br>ruleset =/ alt3 <br> ruleset =/ alt4 / alt5</td>
+</tr>
+<tr class="even">
+<td>%c##-##</td>
+<td>数值范围可以通过使用连字符(“-”)来指定。</td>
+<td>OCTAL = "0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" 等价于<br>
+OCTAL = %x30-37</td>
+</tr>
+<tr class="odd">
+<td>(规则1 规则2)</td>
+<td>元素可以放置在圆括号中来组合定义中的规则。</td>
+<td>要匹配“elem fubar snafu”或“elem tarfu snafu”可以构造下列规则：<br>
+group = elem (fubar / tarfu) snafu</td>
+</tr>
+<tr class="even">
+<td>n*m规则</td>
+<td>规则重复最小n次 最大m次</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>上述操作符有从最紧绑定(binding)到最松绑定的给定优先级:</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">1.</span> 字符串，名字形成(formation)</span><br><span class="line"><span class="bullet">2.</span> 注释</span><br><span class="line"><span class="bullet">3.</span> 值范围</span><br><span class="line"><span class="bullet">4.</span> 重复</span><br><span class="line"><span class="bullet">5.</span> 分组，可选</span><br><span class="line"><span class="bullet">6.</span> 串联</span><br><span class="line"><span class="bullet">7.</span> 选择</span><br></pre></td></tr></table></figure>
+<h3 id="scala-parser-combinator">scala parser combinator</h3>
+<p>在使用这个解析库时，只需要写出BNF，对照着翻译成代码，那么scala就会根据递归下降自动完成解析。非常方便，这种方便依赖于scala提供的pattern
+match。和BNF的对照关系见下表</p>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 83%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>scala操作符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>~</td>
+<td>连接词，用于连接两个token，实际上是一个case类，定义：case class ~<a
+href="_1:%20a,%20_2:%20b">+a, +b</a></td>
+</tr>
+<tr class="even">
+<td>|</td>
+<td>或操作，和BNF中的|等同</td>
+</tr>
+<tr class="odd">
+<td>rep</td>
+<td>用于替换BNF中的大括号，该函数返回Parser[List]，此外还有一个rep1，和rep的区别是：rep表示0或多个，而rep1是一或多个</td>
+</tr>
+<tr class="even">
+<td>^^</td>
+<td>转换parser的结果，即^^后面的函数处理parser解析的值，可以理解为map函数</td>
+</tr>
+<tr class="odd">
+<td>&lt;~</td>
+<td>提取器，因为 '~' 会出现在字面量中，需要进一步case匹配对应的 '~'
+，为提取更快捷，提供 '~&gt;'
+用于提取右边的结果、'&lt;~'提取其左边的结果，一般配对使用</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.<span class="type">Map</span></span><br><span class="line"><span class="keyword">import</span> scala.util.parsing.combinator.<span class="type">JavaTokenParsers</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JsonParser</span> <span class="keyword">extends</span> <span class="title">JavaTokenParsers</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">json</span></span>: <span class="type">Parser</span>[<span class="type">Map</span>[<span class="type">String</span>, <span class="type">Any</span>]] = <span class="string">&quot;&#123;&quot;</span> ~&gt; repsep(member, <span class="string">&quot;,&quot;</span>) &lt;~ <span class="string">&quot;&#125;&quot;</span> ^^ &#123;</span><br><span class="line">    <span class="type">Map</span>() ++ _</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">member</span></span>: <span class="type">Parser</span>[(<span class="type">String</span>, <span class="type">Any</span>)] = stringLiteral ~ <span class="string">&quot;:&quot;</span> ~ value ^^ &#123; <span class="keyword">case</span> k ~ <span class="string">&quot;:&quot;</span> ~ v =&gt; (k, v) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">value</span></span>: <span class="type">Parser</span>[<span class="type">Any</span>] = json | array | stringLiteral | floatingPointNumber ^^ &#123;</span><br><span class="line">    _.toDouble</span><br><span class="line">  &#125; |</span><br><span class="line">    <span class="string">&quot;null&quot;</span> ^^ &#123; _ =&gt; <span class="literal">null</span> &#125; | <span class="string">&quot;true&quot;</span> ^^ &#123; _ =&gt; <span class="literal">true</span> &#125; | <span class="string">&quot;false&quot;</span> ^^ &#123; _ =&gt; <span class="literal">false</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">array</span></span>: <span class="type">Parser</span>[<span class="type">List</span>[<span class="type">Any</span>]] = <span class="string">&quot;[&quot;</span> ~&gt; repsep(value, <span class="string">&quot;,&quot;</span>) &lt;~ <span class="string">&quot;]&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">parse</span></span>(str: java.lang.<span class="type">CharSequence</span>) = <span class="keyword">super</span>.parseAll(json, str)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>又比如一个加减乘除计算器</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.<span class="type">Map</span></span><br><span class="line"><span class="keyword">import</span> scala.util.parsing.combinator.<span class="type">JavaTokenParsers</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * * expr ::= term &#123;&quot;+&quot; term | &quot;-&quot; term&#125;</span></span><br><span class="line"><span class="comment"> * * term ::= factor &#123;&quot;*&quot; factor | &quot;/&quot; factor&#125;</span></span><br><span class="line"><span class="comment"> * * factor ::= floatingPointNumber | &quot;(&quot; expr &quot;)&quot;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">Calculator2</span> <span class="keyword">extends</span> <span class="title">JavaTokenParsers</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">expr</span></span>: <span class="type">Parser</span>[<span class="type">Double</span>] = term ~ rep((<span class="string">&quot;+&quot;</span> | <span class="string">&quot;-&quot;</span>) ~ term) ^^ &#123;</span><br><span class="line">    <span class="keyword">case</span> n ~ r =&gt; r.foldRight(n) &#123;</span><br><span class="line">      (a, b) =&gt;</span><br><span class="line">        a <span class="keyword">match</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> <span class="string">&quot;+&quot;</span> ~ x =&gt; b + x</span><br><span class="line">          <span class="keyword">case</span> <span class="string">&quot;-&quot;</span> ~ x =&gt; b - x</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">term</span></span>: <span class="type">Parser</span>[<span class="type">Double</span>] = factor ~ rep((<span class="string">&quot;*&quot;</span> | <span class="string">&quot;/&quot;</span>) ~ factor) ^^ &#123;</span><br><span class="line">    <span class="keyword">case</span> n ~ r =&gt; r.foldRight(n) &#123;</span><br><span class="line">      (a, b) =&gt;</span><br><span class="line">        a <span class="keyword">match</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> <span class="string">&quot;*&quot;</span> ~ x =&gt; b * x</span><br><span class="line">          <span class="keyword">case</span> <span class="string">&quot;/&quot;</span> ~ x =&gt; b / x</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">factor</span></span>: <span class="type">Parser</span>[<span class="type">Double</span>] = floatingPointNumber ^^ &#123;</span><br><span class="line">    _.toDouble</span><br><span class="line">  &#125; | <span class="string">&quot;(&quot;</span> ~&gt; expr &lt;~ <span class="string">&quot;)&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="generator">Generator</h2>
+<p>相比于parser，generator就简单多了，还是充分利用pattern match的特性
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span></span>(x: <span class="type">Any</span>): <span class="type">String</span> = &#123;</span><br><span class="line">  x <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> j: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">Any</span>] =&gt; <span class="string">&quot;&#123;&quot;</span> + j.map &#123; <span class="keyword">case</span> (k, v) =&gt; <span class="string">&quot;\&quot;&quot;</span> + k + <span class="string">&quot;\&quot;&quot;</span> + <span class="string">&quot;:&quot;</span> + foo(v) &#125;.mkString(<span class="string">&quot;,&quot;</span>) + <span class="string">&quot;&#125;&quot;</span></span><br><span class="line">    <span class="keyword">case</span> j: <span class="type">List</span>[<span class="type">Any</span>] =&gt; <span class="string">&quot;[&quot;</span> + j.map(v =&gt; foo(v)).mkString(<span class="string">&quot;,&quot;</span>) + <span class="string">&quot;]&quot;</span></span><br><span class="line">    <span class="keyword">case</span> <span class="literal">null</span> =&gt; <span class="string">&quot;null&quot;</span></span><br><span class="line">    <span class="keyword">case</span> j: <span class="type">String</span> =&gt; <span class="string">&quot;\&quot;&quot;</span> + j + <span class="string">&quot;\&quot;&quot;</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; x.toString</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> m = <span class="type">Map</span>(<span class="string">&quot;1&quot;</span> -&gt; <span class="type">List</span>(<span class="number">2.0</span>, <span class="number">3.0</span>), <span class="string">&quot;2&quot;</span> -&gt; <span class="type">List</span>(<span class="type">Map</span>(<span class="string">&quot;3&quot;</span> -&gt; <span class="literal">true</span>, <span class="string">&quot;5&quot;</span> -&gt; <span class="literal">null</span>), <span class="number">2.0</span>, <span class="number">3.0</span>, <span class="string">&quot;asfasf&quot;</span>))</span><br><span class="line"><span class="comment">//val m = List(1, 2, 3)</span></span><br><span class="line">println(m, foo(m))</span><br></pre></td></tr></table></figure></p>
+<h2 id="小结">小结</h2>
+<ol type="1">
+<li>四种文法定义以及关系</li>
+<li>描述文法的方法有BNF，EBNF，ABNF</li>
+<li>写出某文法的BNF表达式，并基于scala parser combinator
+即可开发出相应的parser</li>
+<li>parser 和generator 都是充分使用了scala的pattern match</li>
+</ol>
+<p>参考:</p>
+<ol type="1">
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Jurbo/article/details/78012604"
+class="uri">https://blog.csdn.net/Jurbo/article/details/78012604</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/zgljl2012/article/details/53883459"
+class="uri">https://blog.csdn.net/zgljl2012/article/details/53883459</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="http://www.360doc.com/content/16/1225/10/38836195_617479642.shtml"
+class="uri">http://www.360doc.com/content/16/1225/10/38836195_617479642.shtml</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/15efcb0c06c8"
+class="uri">https://www.jianshu.com/p/15efcb0c06c8</a></p></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BC%96%E7%A8%8B/" rel="tag"># 编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/07/24/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-embedding%E4%B9%8Bword2vec/" rel="prev" title="机器学习-embedding之word2vec">
+      <i class="fa fa-chevron-left"></i> 机器学习-embedding之word2vec
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#parser%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">parser是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E8%A8%80"><span class="nav-number">2.</span> <span class="nav-text">语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%B3%95%E8%AF%AD%E6%B3%95grammer"><span class="nav-number">3.</span> <span class="nav-text">文法(语法)Grammer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E7%9A%84%E5%BD%A2%E5%BC%8F%E5%8C%96%E5%AE%9A%E4%B9%89"><span class="nav-number">3.1.</span> <span class="nav-text">语法的形式化定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%A6%E5%8F%B7%E7%BA%A6%E5%AE%9A"><span class="nav-number">3.2.</span> <span class="nav-text">符号约定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E5%AF%BC%E5%92%8C%E8%A7%84%E7%BA%A6"><span class="nav-number">3.3.</span> <span class="nav-text">推导和规约</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%AD%E8%AF%AD%E7%AE%80%E5%8D%95%E7%9F%AD%E8%AF%AD%E4%B8%8E%E5%8F%A5%E6%9F%84"><span class="nav-number">3.4.</span> <span class="nav-text">短语、简单短语与句柄</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%A5%E5%9E%8B%E5%92%8C%E5%8F%A5%E5%AD%90"><span class="nav-number">3.5.</span> <span class="nav-text">句型和句子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E8%A8%80%E7%9A%84%E5%BD%A2%E5%BC%8F%E5%8C%96%E5%AE%9A%E4%B9%89"><span class="nav-number">3.6.</span> <span class="nav-text">语言的形式化定义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%B3%95%E5%88%86%E7%B1%BB"><span class="nav-number">4.</span> <span class="nav-text">文法分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%8B%E6%96%87%E6%B3%95%E6%97%A0%E9%99%90%E5%88%B6%E6%96%87%E6%B3%95"><span class="nav-number">4.1.</span> <span class="nav-text">0型文法，无限制文法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%8B%E6%96%87%E6%B3%95%E4%B8%8A%E4%B8%8B%E6%96%87%E6%9C%89%E5%85%B3%E6%96%87%E6%B3%95"><span class="nav-number">4.2.</span> <span class="nav-text">1型文法，上下文有关文法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%8B%E6%96%87%E6%B3%95%E4%B8%8A%E4%B8%8B%E6%96%87%E6%97%A0%E5%85%B3%E6%96%87%E6%B3%95"><span class="nav-number">4.3.</span> <span class="nav-text">2型文法，上下文无关文法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%8B%E6%96%87%E6%B3%95%E6%AD%A3%E5%88%99%E6%96%87%E6%B3%95"><span class="nav-number">4.4.</span> <span class="nav-text">3型文法，正则文法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A7%8D%E6%96%87%E6%B3%95%E6%80%BB%E7%BB%93"><span class="nav-number">4.5.</span> <span class="nav-text">4种文法总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A7%8D%E6%96%87%E6%B3%95%E5%85%B3%E7%B3%BB"><span class="nav-number">4.6.</span> <span class="nav-text">4种文法关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E4%B9%89%E6%80%A7%E6%96%87%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">二义性文法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E4%B9%89%E6%80%A7%E6%96%87%E6%B3%95%E7%9A%84%E5%88%A4%E5%AE%9A"><span class="nav-number">5.1.</span> <span class="nav-text">二义性文法的判定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Escala-parser-combinator%E5%AE%9E%E7%8E%B0parser"><span class="nav-number">6.</span> <span class="nav-text">基于Scala parser
+combinator实现parser</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E6%A0%BC%E5%BC%8F%E6%8F%8F%E8%BF%B0%E8%A7%84%E8%8C%83"><span class="nav-number">6.1.</span> <span class="nav-text">语法格式描述规范</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bnf%E8%A7%84%E5%88%99"><span class="nav-number">6.2.</span> <span class="nav-text">BNF规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ebnf"><span class="nav-number">6.3.</span> <span class="nav-text">EBNF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E5%9E%8B%E5%B7%B4%E7%A7%91%E6%96%AF%E8%8C%83%E5%BC%8Fabnf"><span class="nav-number">6.4.</span> <span class="nav-text">增强型巴科斯范式ABNF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scala-parser-combinator"><span class="nav-number">6.5.</span> <span class="nav-text">scala parser combinator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#generator"><span class="nav-number">7.</span> <span class="nav-text">Generator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ukiml</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ukiml</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">147k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:14</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5b91b1ad9dd50225f33e',
+      clientSecret: '19f46a8f45a6d87bb1bda4ad724df3e37d557201',
+      repo        : 'matt90luo.github.io',
+      owner       : 'matt90luo',
+      admin       : ['matt90luo'],
+      id          : 'b6841092c6d379371515cd10824fb5f4',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

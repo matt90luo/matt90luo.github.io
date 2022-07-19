@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
+  </script>
+
+  <meta name="description" content="Python 作为编程语言存在多个具体实现，包括最常用的 CPython、超集 Cython、.NET 平台的 IronPython、JVM 上的 Jython，R 语言实现的 RPython、JIT 版本的 PyPy 等等。这里我们只讨论最常用的、官方的 CPython 实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python-IO密集任务&#x2F;计算密集任务&#x2F;多线程&#x2F;多进程">
+<meta property="og:url" content="https://matt90luo.github.io/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/index.html">
+<meta property="og:site_name" content="ukiml的博客">
+<meta property="og:description" content="Python 作为编程语言存在多个具体实现，包括最常用的 CPython、超集 Cython、.NET 平台的 IronPython、JVM 上的 Jython，R 语言实现的 RPython、JIT 版本的 PyPy 等等。这里我们只讨论最常用的、官方的 CPython 实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-21T03:13:40.000Z">
+<meta property="article:modified_time" content="2022-07-19T13:11:18.529Z">
+<meta property="article:author" content="ukiml">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://matt90luo.github.io/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python-IO密集任务/计算密集任务/多线程/多进程 | ukiml的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ukiml的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2021/05/21/python-IO%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E8%AE%A1%E7%AE%97%E5%AF%86%E9%9B%86%E4%BB%BB%E5%8A%A1-%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E5%A4%9A%E8%BF%9B%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python-IO密集任务/计算密集任务/多线程/多进程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-21 11:13:40" itemprop="dateCreated datePublished" datetime="2021-05-21T11:13:40+08:00">2021-05-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Python 作为编程语言存在多个具体实现，包括最常用的 CPython、超集
+Cython、.NET 平台的 IronPython、JVM 上的 Jython，R 语言实现的
+RPython、JIT 版本的 PyPy 等等。这里我们只讨论最常用的、官方的 CPython
+实现。</p>
+<span id="more"></span>
+<p>GIL是CPython解释器引入的锁，GIL在解释器层面阻止了真正的并行运行。解释器在执行任何线程之前，必须等待当前正在运行的线程释放GIL。事实上，解释器会强迫想要运行的线程必须拿到GIL才能访问解释器的任何资源，例如栈或Python对象等。这也正是GIL的目的——阻止不同的线程并发访问Python对象。这样GIL可以保护解释器的内存，让垃圾回收工作正常。但事实上，这却造成了程序员无法通过并行执行多线程来提高程序的性能。如果我们去掉CPython的GIL，就可以让多线程真正并行执行。GIL并没有影响多处理器并行的线程，只是限制了一个解释器只能有一个线程在运行</p>
+<ul>
+<li><p>引入GLC的好处:</p>
+<blockquote>
+<ul>
+<li>单线程情况下更快。</li>
+<li>瓶颈在于 I/O 的多线程环境下更快。</li>
+<li>CPU 耗时操作发生在 C 库调用上时更快。</li>
+<li>编写 C 扩展会更容易：除法你手动指定，否则不会发生 Python
+线程切换的问题。</li>
+<li>封装 C
+库变得更容易，因为不需要考虑线程安全问题。如果该库不是线程安全的，你只需要保证调用时
+GIL 是锁定的。</li>
+</ul>
+</blockquote></li>
+</ul>
+<h2 id="线程-vs-进程">线程 VS 进程:</h2>
+<blockquote>
+<ul>
+<li>进程是应用程序的一个执行实例，比如，在桌面上双击浏览器图标将会运行一个浏览器。</li>
+<li>线程是一个控制流程，可以在进程内与其他活跃的线程同时执行。“控制流程”指的是顺序执行一些机器指令。</li>
+<li>进程可以包含多个线程，所以开启一个浏览器，操作系统将创建一个进程，并开始执行这个进程的主线程。每一个线程将独立执行一系列的指令（通常就是一个函数），并且和其他线程并行执行。</li>
+<li>同一个进程内的线程可以共享一些地址空间和数据结构，所以线程也被称作“轻量进程”</li>
+</ul>
+</blockquote>
+<ul>
+<li><strong>IO密集型任务 VS 计算密集型任务</strong> &gt; -
+所谓IO密集型任务，是指磁盘IO、网络IO占主要的任务，计算量很小。典型的如请求网页、读写文件
+&gt; -
+所谓计算密集型任务，是指CPU计算占主要的任务，CPU一直处于满负荷状态。比如在一个很大的列表中查找元素</li>
+</ul>
+<p>对于IO密集型任务我们采用多线程，对于计算密集型任务，我们多采用多进程进行并行计算加速</p>
+<h2 id="函数调用">函数调用</h2>
+<h3 id="什么是栈帧stack-frame"><strong>什么是栈帧(stack
+frame)</strong></h3>
+<p>栈帧是存储函数调用活动的实体，每一次函数的调用,都会在调用栈(call
+stack)上维护一个独立的栈帧(stack frame).每个独立的栈帧一般包括：</p>
+<ol type="1">
+<li>函数的返回地址和参数</li>
+<li>临时变量:
+包括函数的非静态局部变量以及编译器自动生成的其他临时变量</li>
+<li>函数调用的上下文栈是从高地址向低地址延伸,一个函数的栈帧用ebp 和 esp
+这两个寄存器来划定范围.ebp 指向当前栈帧的底部,esp 始终指向栈帧的顶部;ebp
+寄存器又被称为帧指针(Frame Pointer);esp 寄存器又被称为栈指针(Stack
+Pointer)</li>
+</ol>
+<h3 id="函数调用过程"><strong>函数调用过程</strong></h3>
+<p>在函数调用的过程中,有函数的调用者(caller)和被调用的函数(callee).
+调用者需要知道被调用者函数返回值;
+被调用者需要道传入的参数和返回的地址，函数调用分为以下几步:</p>
+<ol type="1">
+<li><p>参数入栈: 将参数按照调用约定(C
+是从右向左)依次压入系统栈中;</p></li>
+<li><p>返回地址入栈:
+将当前代码区调用指令的下一条指令地址压入栈中，供函数返回时继续执行;</p></li>
+<li><p>代码跳转: 处理器将代码区跳转到被调用函数的入口处;</p></li>
+<li><p>栈帧调整:</p>
+<ol type="1">
+<li>将调用者的ebp压栈处理，保存指向栈底的ebp的地址（方便函数返回之后的现场恢复），此时esp指向新的栈顶位置<font color=red>push
+ebp</font></li>
+<li>将当前栈帧切换到新栈帧(将eps值装入ebp，更新栈帧底部),
+这时ebp指向栈顶，而此时栈顶就是old ebp <font color=red>mov ebp,
+esp</font></li>
+<li>给新栈帧分配空间 <font color=red>sub esp, XXX</font></li>
+</ol></li>
+</ol>
+<h3 id="函数返回"><strong>函数返回</strong></h3>
+<p>函数返回分为以下几步:</p>
+<ol type="1">
+<li>保存被调用函数的返回值到 eax 寄存器中 <font color=red>mov eax,
+xxx</font></li>
+<li>恢复 esp 同时回收局部变量空间<font color=red> mov ebp,
+esp</font></li>
+<li>将上一个栈帧底部位置恢复到 <font color=red>ebp pop ebp</font></li>
+<li>弹出当前栈顶元素,从栈中取到返回地址,并跳转到该位置
+<font color=red>ret</font></li>
+</ol>
+<p>函数里面要用到数据,如果数据属于性线程级别的(比如函数形参--&gt;局部变量--&gt;存在栈上--&gt;每个线程都有自己的栈)，那么多线程同时调用是没关系的，因为用的都是本线程的数据；但是如果函数用到一些全局数据，比如全局变量，根据堆内存首地址去访问的堆内存(形参传入的)，同时操作一个数据结构(如对一个链表的操作)，静态局部变量，那就存在数据安全问题，必须要加锁对函数访问加锁。</p>
+<p>因此需要互斥处理的，一般是函数中有全局变量，有动态申请的空间，有静态局部变量，有需要进程数据循环发送之类的操作需要进行互斥处理。</p>
+<h3
+id="线程安全函数和可重入函数"><strong>线程安全函数和可重入函数</strong></h3>
+<p>线程安全的(Thread-Safe)：如果一个函数在同一时刻可以被多个线程安全地调用，就称该函数是线程安全的。线程安全函数解决多个线程调用函数时访问共享资
+源的冲突问题。
+可重入(Reentrant)：函数可以由多于一个线程并发使用，而不必担心数据错误。可重入函数可以在任意时刻被中断，稍后再继续运行，不会丢失数据。可重入
+  性解决函数运行结果的确定性和可重复性。可重入函数编写规范为：</p>
+<blockquote>
+<ul>
+<li>不在函数内部使用静态或全局数据 </li>
+<li>不返回静态或全局数据，所有数据都由函数的调用者提供。 </li>
+<li>使用本地数据，或者通过制作全局数据的本地拷贝来保护全局数据。</li>
+<li>如果必须访问全局变量，利用互斥机制来保护全局变量。</li>
+<li>不调用不可重入函数。</li>
+</ul>
+</blockquote>
+<p>两者之间的关系：</p>
+<blockquote>
+<ul>
+<li>一个函数对于多个线程是可重入的，则这个函数是线程安全的。</li>
+<li>一个函数是线程安全的，但并不一定是可重入的。</li>
+<li>可重入性要强于线程安全性。</li>
+</ul>
+</blockquote>
+<h2 id="python的函数传参">python的函数传参</h2>
+<p>在讨论python的函数是如何传参之前，我们先讨论一下c/c++的函数传参方式,
+对于c语言来说只有一种 call-by-value,
+简单说就是实参会如实拷贝至形参，而c++会多了几种，下面请看:</p>
+<h3 id="cc函数传参"><strong>c/c++函数传参</strong></h3>
+<ol type="1">
+<li>按值传参
+按值传参的概念非常好理解，就是函数接收到了传递过来的参数后，将其拷贝一份，其函数内部执行的代码操作的都是传递参数的拷贝。也就是说，按值传参最大的特点就是不会影响到传递过来的参数的值，但因为拷贝了一份副本，会更浪费资源一些。</li>
+<li>按（左值）引用传参 简单来说形参是实参的别名</li>
+<li>按常量引用传参，比如下面的例子 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">string <span class="title">randomItem</span><span class="params">( <span class="keyword">const</span> vector&lt;string&gt; &amp; arr )</span></span>;</span><br></pre></td></tr></table></figure></li>
+<li>按右值引用传参 C++11 全面引入移动语义： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x = y</span><br><span class="line">can be a copy if y is an lvalue,</span><br><span class="line">but a move if y is an rvalue.</span><br></pre></td></tr></table></figure>
+调用拷贝构造函数主要有以下场景：</li>
+</ol>
+<ul>
+<li>对象作为函数的参数，以值传递的方式传给函数。　</li>
+<li>对象作为函数的返回值，以值的方式从函数返回</li>
+<li>使用一个对象给另一个对象初始化</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>():<span class="built_in">m_ptr</span>(<span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(<span class="number">0</span>))&#123;cout &lt;&lt; <span class="string">&quot;construct&quot;</span> &lt;&lt; endl;&#125; </span><br><span class="line">    <span class="built_in">A</span>(<span class="keyword">const</span> A&amp; a):<span class="built_in">m_ptr</span>(<span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(*a.m_ptr))&#123; cout &lt;&lt; <span class="string">&quot;copy construct&quot;</span> &lt;&lt; endl; &#125;</span><br><span class="line">    <span class="built_in">A</span>(A&amp;&amp; a) :<span class="built_in">m_ptr</span>(a.m_ptr) &#123;</span><br><span class="line">        a.m_ptr = <span class="literal">nullptr</span>; </span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;move construct&quot;</span> &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ~<span class="built_in">A</span>()&#123; <span class="keyword">delete</span> m_ptr;&#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">        <span class="keyword">int</span>* m_ptr;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function">A <span class="title">GetA</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">A</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    A a = <span class="built_in">GetA</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">construct</span><br><span class="line">move construct</span><br><span class="line">move construct</span><br></pre></td></tr></table></figure></p>
+<p>使用 <font color=gray> -fno-elide-constructors </font>
+选项编译上述代码，可以关闭编译器的ROV优化,输出结果表明，并没有调用拷贝构造函数，只调用了move
+construct函数。</p>
+<p>这就是移动语义，需要注意的一个细节是，我们提供移动构造函数的同时也会提供一个拷贝构造函数，以防止移动不成功的时候还能拷贝构造。更详细的内容参考这篇文章
+- <a
+target="_blank" rel="noopener" href="https://www.cnblogs.com/qicosmos/p/4283455.html">从4行代码看右值引用</a></p>
+<h3 id="python的name-binding"><strong>python的name binding</strong></h3>
+<p>python中一切皆对象, <font color=gray> a = 1 </font>
+这条语句就是把名字<font color=red>a</font>绑定在<font color=red>1</font>这个对象上</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">a = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span>(<span class="params">b</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(b <span class="keyword">is</span> a)</span><br><span class="line">    b.append(<span class="number">4</span>)</span><br><span class="line">    <span class="built_in">print</span>(b <span class="keyword">is</span> a)</span><br><span class="line">foo(a)    <span class="comment"># 会打印出 True  True </span></span><br><span class="line"><span class="built_in">print</span>(a)  <span class="comment">#  [1,2,3,4]</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bar</span>(<span class="params">c</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(c <span class="keyword">is</span> a)</span><br><span class="line">    c = [<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]</span><br><span class="line">    <span class="built_in">print</span>(c <span class="keyword">is</span> a)</span><br><span class="line">bar(a)    <span class="comment"># 会打印出 True  False</span></span><br><span class="line"><span class="built_in">print</span>(a)  <span class="comment"># [1,2,3,4]</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>刚开始执行foo(a)的时候，名字b与a绑定的的是同一个list，所以 b is a
+返回True，然后执行b.append(4),
+实际是对它俩绑定的那个list对象进行操作,执行完以后，它俩仍然绑定这个list对象，所以还是返回True。那么在foo函数执行完以后，通过a去引用这个list对象，它的内容就是1,2,3,4.</li>
+<li>再看bar(a)的执行情况，刚开始名字c 和 a 都是绑定这个list对象，所以 c
+is a返回True. 然后执行c = [0,0,0],表明名字c
+绑定到了另外一个list对象上了，而名字a 仍然绑定着原来的那个list对象。所以
+c is a
+返回False，bar函数执行完以后，通过名字a引用到的那个list的内容还是包含1,2,3,4.</li>
+</ul>
+<p>我们把python中的这种引用方式称作<strong>句柄引用</strong>,
+和c++中的<strong>别名引用</strong>有一定区别</p>
+<h2 id="python的multiprocessing">python的multiprocessing</h2>
+<p>multiprocessing模块提供了Process能让我们通过创建进程对象并执行该进程对象的start方法来创建一个真正的进程来执行任务，该接口类似threading模块中的线程类Thread.</p>
+<p>但是当被操作对象数目不大的时候可以使用Process动态生成多个进程，但是如果需要的进程数一旦很多的时候，手动限制进程的数量以及处理不同进程返回值会变得异常的繁琐，multiprocessing模块提供了一个进程池Pool类，负责创建进程池对象，并提供了一些方法来讲运算任务offload到不同的子进程中执行，并很方便的获取返回值。multiprocessing.pool提供以下多种方式可以用来将任务分给到各个子进程：</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Multi-args</th>
+<th>Concurrence</th>
+<th>Blocking</th>
+<th>Ordered-results</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pool.apply</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Pool.apply_async</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>Pool.map</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Pool.map_async</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Pool.starmap</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Pool.stamap_async</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>注意:</p>
+<blockquote>
+<ul>
+<li>Pool.imap and Pool.imap_async – lazier version of map and
+map_async.</li>
+<li>Pool.starmap 和Pool.map 相比可以接受多参数函数</li>
+<li>Async methods submit all the processes at once and retrieve the
+results once they are finished. Use get method to obtain the
+results.</li>
+<li>Pool.map(or Pool.apply)methods are very much similar to Python
+built-in map(or apply). They block the main process until all the
+processes complete and return the result.</li>
+<li>需要说明的是，最后一列Ordered-results表示各个方法返回的结果是否是有序的,
+不是表示各个函数的返回值是否是按照调用的顺序返回的</li>
+</ul>
+</blockquote>
+<h3 id="chunksize影响优化效率">chunksize影响优化效率</h3>
+<p>现在有一个需要加速的计算任务, xl是一个list of set,
+我们要判断yl列表中的每一个元素是否存在set内,
+两层for循环嵌套计算，具体代码如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> multiprocessing</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"></span><br><span class="line">    xl = [<span class="built_in">set</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="built_in">str</span>(x), np.random.randint(<span class="number">400</span>, size=<span class="number">100</span>))) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">80000</span>)]</span><br><span class="line">    yl = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="built_in">str</span>(x), np.random.randint(<span class="number">400</span>, size=<span class="number">400</span>)))</span><br><span class="line"></span><br><span class="line">    <span class="comment">#单进程执行</span></span><br><span class="line">    local_time = time.time()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;start pf time &quot;</span>, local_time)</span><br><span class="line">    res = [ iy <span class="keyword">in</span> ix <span class="keyword">for</span> iy <span class="keyword">in</span> yl <span class="keyword">for</span> ix <span class="keyword">in</span> xl]</span><br><span class="line">    end_time = time.time()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;pf during time &quot;</span>, end_time - local_time)</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">len</span>(res), res[<span class="number">0</span>:<span class="number">8</span>])</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>输出： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">multiprocessing.cpu_count() 4</span><br><span class="line">start pf time  1585446005.5070348</span><br><span class="line">pf during time  6.3575873374938965</span><br><span class="line">32000000 [False, False, False, False, False, False, True, False]</span><br></pre></td></tr></table></figure>
+我们使用<font color=grey>pool.starmap</font>进行并行加速</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> multiprocessing</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func_task</span>(<span class="params">x, yl</span>):</span> <span class="keyword">return</span> [y <span class="keyword">in</span> x <span class="keyword">for</span> y <span class="keyword">in</span> yl]</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;multiprocessing.cpu_count()&quot;</span>, multiprocessing.cpu_count())</span><br><span class="line">    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())</span><br><span class="line">    xl = [<span class="built_in">set</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="built_in">str</span>(x), np.random.randint(<span class="number">400</span>, size=<span class="number">100</span>))) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">80000</span>)]</span><br><span class="line">    yl = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="built_in">str</span>(x), np.random.randint(<span class="number">400</span>, size=<span class="number">400</span>)))</span><br><span class="line"></span><br><span class="line">    <span class="comment">#使用starmap</span></span><br><span class="line">    task = [(ix, yl) <span class="keyword">for</span> ix <span class="keyword">in</span> xl]</span><br><span class="line">    local_time = time.time()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;start pf time &quot;</span>, local_time)</span><br><span class="line">    results = pool.starmap(func_task, task)</span><br><span class="line">    end_time = time.time()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;pf during time &quot;</span>, end_time - local_time)</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">len</span>(results), results[<span class="number">0</span>][<span class="number">0</span>:<span class="number">8</span>])</span><br></pre></td></tr></table></figure>
+<p>输出： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">multiprocessing.cpu_count() 4</span><br><span class="line">start pf time  1585446134.5832891</span><br><span class="line">pf during time  7.450953006744385</span><br><span class="line">80000 [False, False, False, False, False, False, False, False]</span><br></pre></td></tr></table></figure> 居然变慢了，这是怎么回事?
+带着这样的疑问查阅了相关资料 <a
+target="_blank" rel="noopener" href="https://stackoverflow.com/questions/53751050/python-multiprocessing-understanding-logic-behind-chunksize">python-multiprocessing-understanding-logic-behind-chunksize</a></p>
+<p>我的理解是合适的chunksize与具体的问题规模以及计算量相关,
+不存在普适的公式，原文说：</p>
+<blockquote>
+<p>More chunks mean more overhead, but increased scheduling flexibility.
+How this answer will show, this leads to a higher worker-utilization on
+average, but without the guarantee of a shorter overall computation time
+for every case.</p>
+</blockquote>
+<p>更过的chunks意味着更多的资源消耗，但是会提升scheduling
+flexibility，这再一定程度提升了平均cpu使用,
+但是不能确保整体time消耗降低</p>
+<p>据此我尝试了chunksize分别是10，100，1000，10000的情况，结果如下:</p>
+<table>
+<thead>
+<tr class="header">
+<th>chunksize</th>
+<th>time consumption (seconds)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>10</td>
+<td>5.82</td>
+</tr>
+<tr class="even">
+<td>100</td>
+<td>6.18</td>
+</tr>
+<tr class="odd">
+<td>1000</td>
+<td>5.61</td>
+</tr>
+<tr class="even">
+<td>10000</td>
+<td>9.42</td>
+</tr>
+</tbody>
+</table>
+<p>在chunksize=256时取得了4.8S的时间消耗</p>
+<h2 id="小结">小结</h2>
+<ul>
+<li>函数中有全局变量，动态申请的空间，静态局部变量在同进程下的多线程需要考虑互斥</li>
+<li>IO密集任务使用多线程 计算密集任务使用多进程</li>
+<li>python多进程并行计算使用时需要尝试调整chunksize来优化时间消耗</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/21/%E5%A4%A7%E6%95%B0%E6%8D%AE-DataFlow%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/" rel="prev" title="大数据-DataFlow编程模型">
+      <i class="fa fa-chevron-left"></i> 大数据-DataFlow编程模型
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/21/%E4%BB%8E%E5%A4%9A%E8%87%82%E8%B5%8C%E5%8D%9A%E6%9C%BA%E8%B0%88%E8%B5%B7/" rel="next" title="从多臂赌博机谈起">
+      从多臂赌博机谈起 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B-vs-%E8%BF%9B%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">线程 VS 进程:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">函数调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%A0%88%E5%B8%A7stack-frame"><span class="nav-number">2.1.</span> <span class="nav-text">什么是栈帧(stack
+frame)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">函数调用过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%BF%94%E5%9B%9E"><span class="nav-number">2.3.</span> <span class="nav-text">函数返回</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E5%87%BD%E6%95%B0%E5%92%8C%E5%8F%AF%E9%87%8D%E5%85%A5%E5%87%BD%E6%95%B0"><span class="nav-number">2.4.</span> <span class="nav-text">线程安全函数和可重入函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E7%9A%84%E5%87%BD%E6%95%B0%E4%BC%A0%E5%8F%82"><span class="nav-number">3.</span> <span class="nav-text">python的函数传参</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#cc%E5%87%BD%E6%95%B0%E4%BC%A0%E5%8F%82"><span class="nav-number">3.1.</span> <span class="nav-text">c&#x2F;c++函数传参</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#python%E7%9A%84name-binding"><span class="nav-number">3.2.</span> <span class="nav-text">python的name binding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E7%9A%84multiprocessing"><span class="nav-number">4.</span> <span class="nav-text">python的multiprocessing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#chunksize%E5%BD%B1%E5%93%8D%E4%BC%98%E5%8C%96%E6%95%88%E7%8E%87"><span class="nav-number">4.1.</span> <span class="nav-text">chunksize影响优化效率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ukiml</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ukiml</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">147k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:14</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.8/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5b91b1ad9dd50225f33e',
+      clientSecret: '19f46a8f45a6d87bb1bda4ad724df3e37d557201',
+      repo        : 'matt90luo.github.io',
+      owner       : 'matt90luo',
+      admin       : ['matt90luo'],
+      id          : '6ea7bdf8dc6108c7c54041b0d19c7c7d',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
