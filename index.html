@@ -160,6 +160,206 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2022/07/21/%E4%BB%8E%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%E8%B0%88%E8%B5%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/07/21/%E4%BB%8E%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%E8%B0%88%E8%B5%B7/" class="post-title-link" itemprop="url">从集成学习谈起</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-21 10:42:29" itemprop="dateCreated datePublished" datetime="2022-07-21T10:42:29+00:00">2022-07-21</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>657</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在机器学习中的常规算法，都是作为一个独立模型发挥作用，而集成学习就是让这些单独的模型一起解决问题，实现“3 个臭皮匠顶个诸葛亮”的效果”。集成学习归属于机器学习，是一种训练思路，并不是某种具体的方法或者算法。</p>
+<p>集成学习通过将多个弱学习器进行结合，通常可以获得比单一学习器显著优越的泛化性能。要想获得好的集成，需要个体学习器“好而不同”，即个体学习器要有一定的“准确性”，即学习器不能太坏，并且要有“多样性”，即学习器之间有差异性。假设个体学习器之间的错误率相互独立，那随着集成中的个体learner数目增加，集成后的错误率将指数下降。在实际情况下，准确性和多样性存在冲突。如何产生“好而不同”的个体learner，是集成学习的研究核心。</p>
+<p>根据个体learner的生成方式，可以把集成学习分为两类，一类是个体learner之间存在强依赖关系，必须串行生成的序列化方法。一类是learner之间不存在强依赖关系，可以同时生成的并行化方法。前者的代表是boosting，后者的代表是Bagging以及随机森林(Random Forest) 1. boosting 2. bagging（bootstrap aggregating的缩写，也称作“套袋法”）</p>
+<p>Boosting 和 bagging 最本质的差别在于他对基础模型不是一致对待的，而是经过不停的考验和筛选来挑选出「精英」，然后给精英更多的投票权，表现不好的基础模型则给较少的投票权，然后综合所有人的投票得到最终结果。</p>
+<h2 id="boosting">boosting</h2>
+<p>主流的方法有Adaboost和Gradient Boost</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2022/07/19/%E4%BB%8E%E5%86%B3%E7%AD%96%E6%A0%91%E8%B0%88%E8%B5%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/07/19/%E4%BB%8E%E5%86%B3%E7%AD%96%E6%A0%91%E8%B0%88%E8%B5%B7/" class="post-title-link" itemprop="url">从决策树谈起</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-19 22:11:48" itemprop="dateCreated datePublished" datetime="2022-07-19T22:11:48+00:00">2022-07-19</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>决策树是一种逻辑简单的机器学习算法，具有一种树形结构，因此得名。决策树是最简单的机器学习算法，它易于实现，可解释性强，完全符合人类的直观思维，有着广泛的应用。决策树模型既可以做分类也可以做回归。</p>
+<ul>
+<li>对于分类问题。测试样本点到达的叶子节点上所有类别中样本点最多的类别，即为测试样本点的类别；</li>
+<li>对于回归问题。测试样本点到达的叶子节点上所有样本点输出值的平均值，即为测试样本点的输出值；</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>节点</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>根节点</td>
+<td>包含样本全集</td>
+</tr>
+<tr class="even">
+<td>内部节点</td>
+<td>对应特征属性</td>
+</tr>
+<tr class="odd">
+<td>叶节点</td>
+<td>决策结果</td>
+</tr>
+</tbody>
+</table>
+<p>决策树有三个步骤 1. 特征选择</p>
+<p>特征选择决定了使用哪些特征来做判断。在训练数据集中，每个样本的属性可能有很多个，不同属性的作用有大有小。因而特征选择的作用就是筛选出跟分类结果相关性较高的特征，也就是分类能力较强的特征。在特征选择中通常使用的准则是：信息增益。</p>
+<ol start="2" type="1">
+<li>决策树生成</li>
+</ol>
+<p>选择好特征后，就从根节点触发，对节点计算所有特征的信息增益，选择信息增益最大的特征作为节点特征，根据该特征的不同取值建立子节点；对每个子节点使用相同的方式生成新的子节点，直到信息增益很小或者没有特征可以选择为止。</p>
+<ol start="3" type="1">
+<li>决策树剪枝</li>
+</ol>
+<p>剪枝的主要目的是对抗“过拟合”，通过主动去掉部分分支来降低过拟合的风险。</p>
+<h2 id="决策树分类">决策树分类</h2>
+<p>根据使用的特征选择算法不同，我们将决策树分为三类</p>
+<ol type="1">
+<li><p>ID3 使用信息增益作为特征选择，只能处理分类问题，loss函数的评价是使用信息熵</p></li>
+<li><p>C4.5 它是ID3的改进版本，使用信息增益比作为特征选择依据。只能处理分类问题，理由同上</p></li>
+<li><p>CART(Classification and Regression Tree) 采用Gini系数时可以处理分类问题，采用variance系数时可以用于回归问题，如果是一个回归问题，那么每一次特征选择后，其方差更小，那么叶节点内的均值就是一个回归值。</p></li>
+</ol>
+<h2 id="决策树的样本处理">决策树的样本处理</h2>
+<h3 id="gini系数">Gini系数</h3>
+<p>假设我们在使用Gini系数处理分类问题，对于连续特征值的特征，通过取相邻样本的平均值作为划分点，比如m个样本的连续特征A有m个，从小到大排列为<span class="math inline">\(a_1,a_2,\dots a_m\)</span>则CART算法取相邻两样本值的平均数，一共取得m-1个划分点，其中第i个划分点<span class="math inline">\(T_i\)</span>表示为 <span class="math inline">\(T_i = \frac{a_i + a_{i+1}}{2}\)</span>,然后就是对于这m-1个点，分别计算以该点作为二元分类点时的基尼系数。选择基尼系数最小的点作为该连续特征的二元离散分类点。比如取到的基尼系数最小的点为𝑎𝑡,则小于𝑎𝑡的值为类别1，大于𝑎𝑡的值为类别2，这样我们就做到了连续特征的离散化。要注意的是，与ID3或者C4.5处理离散属性不同的是，如果当前节点为连续属性，则该属性后面还可以参与子节点的产生选择过程。</p>
+<p>对于CART分类树离散值的处理问题，采用的思路是不停的二分离散特征。</p>
+<p>回忆下ID3或者C4.5，如果某个特征A被选取建立决策树节点，如果它有A1,A2,A3三种类别，我们会在决策树上一下建立一个三叉的节点。这样导致决策树是多叉树。但是CART分类树使用的方法不同，他采用的是不停的二分，还是这个例子，CART分类树会考虑把A分成{𝐴1}和{𝐴2,𝐴3}, {𝐴2}和{𝐴1,𝐴3}, {𝐴3}和{𝐴1,𝐴2}三种情况，找到基尼系数最小的组合，比如{𝐴2}和{𝐴1,𝐴3},然后建立二叉树节点，一个节点是A2对应的样本，另一个节点是{A1,A3}对应的节点。同时，由于这次没有把特征A的取值完全分开，后面我们还有机会在子节点继续选择到特征A来划分A1和A3。这和ID3或者C4.5不同，在ID3或者C4.5的一棵子树中，离散特征只会参与一次节点的建立。</p>
+<p>在真实世界中，常常会面临样本具有特征缺失的情况。我们需要解决两个问题 (1)如何在属性值缺失的情况下进行划分属性选择 (2)给定划分属性，若样本在该属性上的值缺失，如何对样本划分？</p>
+<h3 id="variance系数">variance系数</h3>
+<p>分类时，如果待分类样本有缺失变量，而决策树决策过程中没有用到这些变量，则决策过程和没有缺失的数据一样；否则，如果决策要用到缺失变量，决策树也可以在当前节点做多数投票来决定。回归的话，多数投票会换成局部回归等类似的方法。这样决策树就能给缺失变量的样本一个预测了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -846,166 +1046,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/07/21/%E5%A4%A7%E6%95%B0%E6%8D%AE-DataFlow%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/21/%E5%A4%A7%E6%95%B0%E6%8D%AE-DataFlow%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">大数据-DataFlow编程模型</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-07-21 18:35:49" itemprop="dateCreated datePublished" datetime="2020-07-21T18:35:49+00:00">2020-07-21</time>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ukiml">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ukiml的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/" class="post-title-link" itemprop="url">机器学习--线性回归/正规方程解法/梯度下降法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-31 22:50:59" itemprop="dateCreated datePublished" datetime="2020-05-31T22:50:59+00:00">2020-05-31</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>18k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>17 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>线性回归可以说是最基础的机器学习模型，本文将对此模型做一个分析，并介绍常见的线性回归模型的训练方法。以及由此衍生出的逻辑回归(LR)，多分类。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/05/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95-%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1075,7 +1115,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1124,12 +1164,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">147k</span>
+    <span title="站点总字数">150k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:14</span>
+    <span title="站点阅读时长">2:16</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
   </div>

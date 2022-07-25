@@ -20,15 +20,19 @@
     var CONFIG = {"hostname":"matt90luo.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"./public/search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="ukiml的博客">
-<meta property="og:url" content="https://matt90luo.github.io/tags/%E7%BC%96%E7%A8%8B/index.html">
+  <meta name="description" content="在机器学习中的常规算法，都是作为一个独立模型发挥作用，而集成学习就是让这些单独的模型一起解决问题，实现“3 个臭皮匠顶个诸葛亮”的效果”。集成学习归属于机器学习，是一种训练思路，并不是某种具体的方法或者算法。 集成学习通过将多个弱学习器进行结合，通常可以获得比单一学习器显著优越的泛化性能。要想获得好的集成，需要个体学习器“好而不同”，即个体学习器要有一定的“准确性”，即学习器不能太坏，并且要有“多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从集成学习谈起">
+<meta property="og:url" content="https://matt90luo.github.io/2022/07/21/%E4%BB%8E%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%E8%B0%88%E8%B5%B7/index.html">
 <meta property="og:site_name" content="ukiml的博客">
+<meta property="og:description" content="在机器学习中的常规算法，都是作为一个独立模型发挥作用，而集成学习就是让这些单独的模型一起解决问题，实现“3 个臭皮匠顶个诸葛亮”的效果”。集成学习归属于机器学习，是一种训练思路，并不是某种具体的方法或者算法。 集成学习通过将多个弱学习器进行结合，通常可以获得比单一学习器显著优越的泛化性能。要想获得好的集成，需要个体学习器“好而不同”，即个体学习器要有一定的“准确性”，即学习器不能太坏，并且要有“多">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-07-21T10:42:29.000Z">
+<meta property="article:modified_time" content="2022-07-25T09:43:42.126Z">
 <meta property="article:author" content="ukiml">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://matt90luo.github.io/tags/%E7%BC%96%E7%A8%8B/">
+<link rel="canonical" href="https://matt90luo.github.io/2022/07/21/%E4%BB%8E%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%E8%B0%88%E8%B5%B7/">
 
 
 <script id="page-configurations">
@@ -36,12 +40,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>标签: 编程 | ukiml的博客</title>
+  <title>从集成学习谈起 | ukiml的博客</title>
   
 
 
@@ -154,57 +158,102 @@
         <div class="content-wrap">
           
 
-          <div class="content tag">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">编程
-          <small>标签</small>
-        </h2>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://matt90luo.github.io/2022/07/21/%E4%BB%8E%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0%E8%B0%88%E8%B5%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ukiml">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ukiml的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从集成学习谈起
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-21 10:42:29" itemprop="dateCreated datePublished" datetime="2022-07-21T10:42:29+00:00">2022-07-21</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>657</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2021</span>
+        <p>在机器学习中的常规算法，都是作为一个独立模型发挥作用，而集成学习就是让这些单独的模型一起解决问题，实现“3 个臭皮匠顶个诸葛亮”的效果”。集成学习归属于机器学习，是一种训练思路，并不是某种具体的方法或者算法。</p>
+<p>集成学习通过将多个弱学习器进行结合，通常可以获得比单一学习器显著优越的泛化性能。要想获得好的集成，需要个体学习器“好而不同”，即个体学习器要有一定的“准确性”，即学习器不能太坏，并且要有“多样性”，即学习器之间有差异性。假设个体学习器之间的错误率相互独立，那随着集成中的个体learner数目增加，集成后的错误率将指数下降。在实际情况下，准确性和多样性存在冲突。如何产生“好而不同”的个体learner，是集成学习的研究核心。</p>
+<p>根据个体learner的生成方式，可以把集成学习分为两类，一类是个体learner之间存在强依赖关系，必须串行生成的序列化方法。一类是learner之间不存在强依赖关系，可以同时生成的并行化方法。前者的代表是boosting，后者的代表是Bagging以及随机森林(Random Forest) 1. boosting 2. bagging（bootstrap aggregating的缩写，也称作“套袋法”）</p>
+<p>Boosting 和 bagging 最本质的差别在于他对基础模型不是一致对待的，而是经过不停的考验和筛选来挑选出「精英」，然后给精英更多的投票权，表现不好的基础模型则给较少的投票权，然后综合所有人的投票得到最终结果。</p>
+<h2 id="boosting">boosting</h2>
+<p>主流的方法有Adaboost和Gradient Boost</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+    
+    
+    
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2021-08-26T11:20:13+00:00"
-              content="2021-08-26">
-          08-26
-        </time>
-      </div>
+      <footer class="post-footer">
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/08/26/%E7%BC%96%E7%A8%8B-parser%E5%92%8Cgenerator/" itemprop="url">
-            <span itemprop="name">编程-parser和generator</span>
-          </a>
-      </div>
+        
 
-    </header>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/19/%E4%BB%8E%E5%86%B3%E7%AD%96%E6%A0%91%E8%B0%88%E8%B5%B7/" rel="prev" title="从决策树谈起">
+      <i class="fa fa-chevron-left"></i> 从决策树谈起
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
   </article>
-
-    </div>
-  </div>
   
   
-  
-
   
 
 
 
           </div>
           
+    <div class="comments" id="gitalk-container"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -251,6 +300,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#boosting"><span class="nav-number">1.</span> <span class="nav-text">boosting</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -389,6 +439,25 @@ if (document.querySelectorAll('pre.mermaid').length) {
 
   
 
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5b91b1ad9dd50225f33e',
+      clientSecret: '19f46a8f45a6d87bb1bda4ad724df3e37d557201',
+      repo        : 'matt90luo.github.io',
+      owner       : 'matt90luo',
+      admin       : ['matt90luo'],
+      id          : '84d2ab41a7f0a55a3ba5a9fdd9a355ee',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
 
 </body>
 </html>
