@@ -1,0 +1,111 @@
+关于地点选择 这次我挑了三个大方向
+1. 享受顶级海鲜自助 人均280
+2. 西田城多伦多海鲜自助 + 休闲娱乐(电影 kTV 网咖 保龄球 棋牌 足浴 卡丁车 丽人)
+3. 一般性轰趴(和Q2团建形式接近)
+
+休闲娱乐活动投票
+
+集体ktv 
+集体保龄球射箭
+集体网咖
+
+hi 请大家对周六自助餐以后的休闲活动进行投票 总的原则是集体行动
+
+
+个人推荐第二个 除了保龄球和射箭还有桌球投篮机和其他游戏机
+
+export PYSPARK_PYTHON=./Python/bin/python3 
+spark-submit --master yarn --archives hdfs:///tmp/manley/pyeda_env.zip#Python --conf spark.pyspark.python=./Python/envs/pyeda_env/bin/python,spark.pyspark.driver.python=./anaconda3/envs/pyeda_env/bin/python foo_mnist.py
+
+spark-submit --master yarn --num-executors 6 --executor-cores 6 --executor-memory 2G  --driver-memory 4G --archives hdfs:///tmp/manley/pyeda_env.zip#Python --conf spark.pyspark.python=./Python/pyeda_env/bin/python --conf spark.pyspark.driver.python=./anaconda3/envs/pyeda_env/bin/python foo_tf.py
+
+spark-submit --master yarn --archives hdfs:///tmp/manley/pyeda_env.zip#Python,mnist/mnist.zip#mnist --conf spark.pyspark.python=./Python/pyeda_env/bin/python --conf spark.pyspark.driver.python=./anaconda3/envs/pyeda_env/bin/python --py-files tfspark.zip TensorFlowOnSpark/examples/mnist/mnist_data_setup.py 
+
+
+df = ss.createDataFrame([
+    (Vectors.dense([2.0, 1.0]),),
+    (Vectors.dense([0.0, 0.0]),),
+    (Vectors.dense([3.0, -1.0]),)
+], ["features"])
+
+
+
+spark-submit --master yarn foo.py
+
+--conf spark.dynamicAllocation.enabled=false
+--conf spark.yarn.maxAppAttempts=1 \
+--archives hdfs:///user/${USER}/Python.zip#Python \
+--conf spark.executorEnv.LD_LIBRARY_PATH=$LIB_CUDA:$LIB_JVM:$LIB_HDFS \
+--driver-library-path=$LIB_CUDA \
+TensorFlowOnSpark/examples/mnist/keras/mnist_spark.py \
+--images_labels hdfs:///user/${USER}/mnist/csv/train \
+--model_dir mnist_modelv
+
+wget -N --no-check-certificate https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh && bash serverspeeder-all.sh
+
+{
+    "server":"45.77.103.50",
+    "local_address":"127.0.0.1",
+    "local_port":1080,
+    "port_password":{
+         "8989":"xiaogouxiong",
+         "9001":"xiaogouxiong",
+         "9002":"xiaogouxiong",
+         "9003":"xiaogouxiong",
+         "9004":"xiaogouxiong"
+    },
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open": false
+}
+
+// item with couon after flatmap
+(gid2navcid count ,853362,promote cnt ,404)
+(res count ,278425627)
+103.83user 10.80system 36:23.68elapsed 5%CPU (0avgtext+0avgdata 2363768maxresident)k
+
+
+
+优化交互人群首页底部栏位整站GMV提升1%
+20190826 - 20190919  通过优化底层算法 实现itemCF 对于低交互人群优化JC首页推荐结果 整站GMV 提升 1.45%
+
+Dealy 首页底部Neals推荐整站GMV提升1.5%   delay首页底部推荐使用neals结果 提升整站GMV+1.69%
+20190813-20190919
+
+Dealy 闪购推荐结果优化提升GMV1.5%    
+20191024-20191031 通过使用neals推荐结果 优化dealy闪购栏位 提升整站GMV 2.54%
+
+JC Dealy平台综合推荐结果优化GMV提升1.5%
+
+GMV拆解
+1. 通过优化底层算法 实现itemCF 对于低交互人群优化JC首页推荐结果 整站GMV 提升 1.45%  评估周期 20190826-20190919
+2. dealy首页底部推荐优化 整站GMV提升 1.69%  评估周期 20190813-20190919
+3. dealy 闪购推荐结果优化 整站GMV提升 2.54% 评估周期 20191024-20191031
+
+
+进一步加强和业务方的对接沟通, 力争做到双方对于问题的理解清晰一致, 及时反馈问题的解决过程和进度
+紧跟行业动态, 了解业界在推荐领域所产生的新方法, 新理论, 并做到理论联系实际, 帮助jc产品对用户产生更大价值
+保持和业务对接方的沟通效率, 明确沟通目标, 及时反馈解决问题的进度
+
+
+1. JC首页底部推荐 低交互用户
+- 使用基于协同的itemCF算法 提升低交互用户栏位点击, 对算法流程形成梳理并归档, 同时优化程序效率并减少资源消耗, 整站GMV提升1.45% 评估周期20190826-20190919
+2. Dealy 首页底部推荐
+- 在分国家运营的基础之上, 考虑基于neals 算法结果优化首页底部推荐, 增加首页底部用户点击率并优化了程序执行效率 整站GMV提升1.69% 评估周期20190813-20190919
+3. Dealy 闪购推荐
+- 基于neals算法结果优化dealy闪购底部推荐, 增加闪购栏位点击同事优化程序执行效率 整站GMV提升 2.54%评估周期20191024-20191031
+
+优化程序资源消耗
+- 对于新上线程序(dealy闪购、首页优化、JC首页低交互 JC免费礼包页面) 平均内存使用 120G, 运行时间 40min
+增加监控
+- 在脚本中增加对于落地数据的监控, 及时发现异常结果, 完善单元测试用例, 减少bug出现率
+
+1. 项目准备
+-熟悉tensorflow基本操作, 并配置运行环境
+-理解RL基本原理, 理解MDP(马尔科夫决策过程), 理解值函数及其对应优化算法
+
+org.platanios:tensorflow-api_2.12:0.4.1
+
+2020工作规划
+1. 在流量变现方向探索广告业务的发展, 包括竞价,收费策略
+2. 基于强化学习实现推荐结果对于用户反馈的实时化, 增加曝光变动性
